@@ -1,70 +1,116 @@
-# Getting Started with Create React App
+# Controle de Fornecedores
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este projeto é um sistema de Controle de Fornecedores que permite o cadastro de fornecedores, o contato do fornecedor, os produtos fornecidos por cada fornecedor, as cotações de preços e consultas dessas cotações. O projeto foi inicializado com [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## Funcionalidades
 
-In the project directory, you can run:
+- **Cadastro de Fornecedores**: Adicione novos fornecedores ao sistema.
+- **Contato do Fornecedor**: Mantenha informações de contato atualizadas para cada fornecedor.
+- **Produtos do Fornecedor**: Cadastre e gerencie produtos fornecidos por cada fornecedor.
+- **Cotações**: Registre cotações de preços para produtos e consulte cotações existentes.
+- **Consultas de Cotações**: Pesquise cotações por produto e fornecedor.
+
+## Histórias de Usuários
+
+### 1. Cadastro de Fornecedores
+
+**História de Usuário:**
+
+- Como gerente de compras,
+- Quero cadastrar novos fornecedores no sistema,
+- Para que eu possa manter um registro atualizado de todos os fornecedores e suas informações de contato.
+
+**Critérios de Aceitação:**
+
+1. O sistema deve permitir o cadastro de fornecedores com campos obrigatórios como nome, CNPJ, endereço, e contato principal.
+2. Deve ser possível editar as informações de um fornecedor já cadastrado.
+3. O sistema deve validar o CNPJ para garantir que é válido.
+4. Deve haver uma lista de fornecedores cadastrados com opção de busca por nome ou CNPJ.
+
+### 2. Cadastro de Contatos
+
+**História de Usuário:**
+
+- Como gerente de compras,
+- Quero cadastrar contatos (pessoas de contato) ligados a um fornecedor,
+- Para que eu possa ter acesso rápido e fácil aos responsáveis de cada fornecedor para negociações e esclarecimentos.
+
+**Critérios de Aceitação:**
+
+1. O sistema deve permitir o cadastro de contatos com campos obrigatórios como nome, telefone, e email.
+2. Cada contato deve estar associado a um fornecedor específico.
+3. Deve ser possível editar as informações de um contato já cadastrado.
+4. A lista de contatos deve ser exibida na página do fornecedor associado.
+
+### 3. Cadastro de Produtos
+
+**História de Usuário:**
+
+- Como gerente de compras,
+- Quero cadastrar novos produtos no sistema,
+- Para que eu possa gerenciar o inventário e as cotações de cada produto de maneira organizada.
+
+**Critérios de Aceitação:**
+
+1. O sistema deve permitir o cadastro de produtos com campos obrigatórios como nome, descrição, categoria, e especificações técnicas.
+2. Deve ser possível editar as informações de um produto já cadastrado.
+3. O sistema deve validar a unicidade do nome do produto para evitar duplicatas.
+4. Deve haver uma lista de produtos cadastrados com opção de busca por nome ou categoria.
+
+### 4. Cadastro de Cotações
+
+**História de Usuário:**
+
+- Como gerente de compras,
+- Quero cadastrar cotações ligadas a produtos com data da cotação e preço,
+- Para que eu possa comparar diferentes ofertas e tomar decisões informadas sobre as compras.
+
+**Critérios de Aceitação:**
+
+1. O sistema deve permitir o cadastro de cotações com campos obrigatórios como produto, fornecedor, data da cotação, preço, e meio de comunicação utilizado.
+2. Deve ser possível editar as informações de uma cotação já cadastrada.
+3. As cotações devem ser associadas a produtos específicos.
+4. Deve haver uma lista de cotações cadastradas com opção de busca por produto ou fornecedor.
+
+### 5. Consulta de Cotações por Produto
+
+**História de Usuário:**
+
+- Como gerente de compras,
+- Quero poder consultar rapidamente todas as cotações para um produto específico,
+- Para que possa comparar e escolher a melhor oferta disponível sem perder tempo.
+
+**Critérios de Aceitação:**
+
+1. O sistema deve permitir que o gestor de compras selecione um produto para ver todas as cotações relacionadas.
+2. A consulta deve retornar resultados em menos de 5 segundos.
+3. Os resultados devem incluir o preço, data da cotação, fornecedor, e a forma de contato utilizada.
+4. Deve ser possível filtrar os resultados por data, preço, ou fornecedor.
+5. A funcionalidade deve ser acessível tanto na versão web quanto móvel.
+
+## Scripts Disponíveis
+
+No diretório do projeto, você pode executar:
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Executa o aplicativo no modo de desenvolvimento.\
+Abra [http://localhost:3000](http://localhost:3000) para visualizá-lo no navegador.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+A página será recarregada quando você fizer alterações.\
+Você também verá quaisquer erros de lint no console.
 
 ### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Inicia o executor de testes no modo interativo de observação.\
+Veja a seção sobre [executando testes](https://facebook.github.io/create-react-app/docs/running-tests) para mais informações.
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Compila o aplicativo para produção na pasta `build`.\
+Ele agrupa corretamente o React no modo de produção e otimiza a compilação para o melhor desempenho.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+A compilação é minificada e os nomes dos arquivos incluem os hashes.\
+Seu aplicativo está pronto para ser implantado!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Veja a seção sobre [implantação](https://facebook.github.io/create-react-app/docs/deployment) para mais informações.
