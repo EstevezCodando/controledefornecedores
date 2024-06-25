@@ -25,6 +25,7 @@ const ProductForm = ({ selectedProduct, setSelectedProduct }) => {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: selectedProduct || {},
@@ -37,6 +38,19 @@ const ProductForm = ({ selectedProduct, setSelectedProduct }) => {
     };
     fetchSuppliers();
   }, []);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setValue("name", selectedProduct.name);
+      setValue("description", selectedProduct.description);
+      setValue("category", selectedProduct.category);
+      setValue(
+        "technicalSpecifications",
+        selectedProduct.technicalSpecifications
+      );
+      setValue("suppliers", selectedProduct.suppliers || []);
+    }
+  }, [selectedProduct, setValue]);
 
   const onSubmit = async (data) => {
     if (selectedProduct) {

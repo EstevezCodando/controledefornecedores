@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getProducts } from "../components/ProductForm/ProductForm.operations";
+import {
+  getProducts,
+  deleteProduct,
+} from "../components/ProductForm/ProductForm.operations";
 import ProductForm from "../components/ProductForm/ProductForm";
 import {
   Box,
@@ -31,6 +34,17 @@ const ProductsPage = () => {
 
   const handleSearch = () => {
     fetchProducts();
+  };
+
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleDelete = async (productId) => {
+    if (window.confirm("Tem certeza de que deseja excluir este produto?")) {
+      await deleteProduct(productId);
+      fetchProducts();
+    }
   };
 
   return (
@@ -98,10 +112,18 @@ const ProductsPage = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setSelectedProduct(product)}
+              onClick={() => handleEdit(product)}
               sx={{ marginTop: 2 }}
             >
               Editar
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => handleDelete(product.id)}
+              sx={{ marginTop: 2, marginLeft: 2 }}
+            >
+              Excluir
             </Button>
           </Paper>
         ))}
