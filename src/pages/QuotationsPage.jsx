@@ -63,8 +63,13 @@ const QuotationsPage = () => {
         <Typography variant="h6" component="h2">
           Buscar Cotações
         </Typography>
-        <Box display="flex" justifyContent="space-between" mb={2}>
-          <FormControl variant="outlined" sx={{ marginRight: 2 }}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+          mb={2}
+        >
+          <FormControl variant="outlined" sx={{ marginBottom: 2 }}>
             <InputLabel id="product-select-label">Produto</InputLabel>
             <Select
               labelId="product-select-label"
@@ -80,7 +85,7 @@ const QuotationsPage = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControl variant="outlined" sx={{ marginRight: 2 }}>
+          <FormControl variant="outlined" sx={{ marginBottom: 2 }}>
             <InputLabel id="supplier-select-label">Fornecedor</InputLabel>
             <Select
               labelId="supplier-select-label"
@@ -96,24 +101,26 @@ const QuotationsPage = () => {
               ))}
             </Select>
           </FormControl>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSearch}
-            sx={{ marginRight: 2 }}
-          >
-            Buscar
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              setFilter({ productId: "", supplierId: "" });
-              fetchQuotations();
-            }}
-          >
-            Limpar
-          </Button>
+          <Box display="flex" justifyContent="space-between">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSearch}
+              sx={{ marginRight: 2 }}
+            >
+              Buscar
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setFilter({ productId: "", supplierId: "" });
+                fetchQuotations();
+              }}
+            >
+              Limpar
+            </Button>
+          </Box>
         </Box>
       </Box>
       <Box mt={4}>
