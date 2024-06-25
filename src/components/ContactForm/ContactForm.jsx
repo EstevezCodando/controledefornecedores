@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Box,
@@ -8,14 +8,21 @@ import {
   Container,
   Paper,
 } from "@mui/material";
-import { addContact } from "./ContactForm.operations";
+import { addContact, updateContact } from "./ContactForm.operations";
 import { validateEmail, validatePhone } from "../../utils/regex";
 
-const ContactForm = ({ suppliers, selectedSupplier, onContactAdded }) => {
+const ContactForm = ({
+  suppliers,
+  selectedSupplier,
+  selectedContact,
+  onContactAdded,
+  onContactUpdated,
+}) => {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -23,12 +30,24 @@ const ContactForm = ({ suppliers, selectedSupplier, onContactAdded }) => {
     },
   });
 
+  useEffect(() => {
+    if (selectedContact) {
+      setValue("name", selectedContact.name);
+      setValue("phone", selectedContact.phone);
+      setValue("email", selectedContact.email);
+    }
+  }, [selectedContact, setValue]);
+
   const onSubmit = async (data) => {
     data.supplierId = selectedSupplier ? selectedSupplier.id : "";
-    console.log("Submitting contact data: ", data); // Debug log
-    await addContact(data);
+    if (selectedContact) {
+      await updateContact(selectedContact.id, data);
+      onContactUpdated();
+    } else {
+      await addContact(data);
+      onContactAdded();
+    }
     reset();
-    onContactAdded();
   };
 
   return (
@@ -43,7 +62,7 @@ const ContactForm = ({ suppliers, selectedSupplier, onContactAdded }) => {
         }}
       >
         <Typography variant="h5" component="h1" gutterBottom>
-          Cadastrar Contato
+          {selectedContact ? "Editar Contato" : "Cadastrar Contato"}
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box mb={3}>
@@ -119,7 +138,7 @@ const ContactForm = ({ suppliers, selectedSupplier, onContactAdded }) => {
               type="submit"
               sx={{ borderRadius: 3 }}
             >
-              Salvar
+              {selectedContact ? "Atualizar" : "Salvar"}
             </Button>
             <Button
               variant="outlined"

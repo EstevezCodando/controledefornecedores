@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   updateDoc,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -13,7 +14,6 @@ const db = getFirestore();
 
 export const addContact = async (contactData) => {
   try {
-    console.log("Adding contact data: ", contactData); // Debug log
     const docRef = await addDoc(collection(db, "contacts"), contactData);
     console.log("Contact added with ID: ", docRef.id);
   } catch (e) {
@@ -31,6 +31,15 @@ export const updateContact = async (id, updatedData) => {
   }
 };
 
+export const deleteContact = async (id) => {
+  try {
+    await deleteDoc(doc(db, "contacts", id));
+    console.log("Contact deleted with ID: ", id);
+  } catch (e) {
+    console.error("Error deleting contact: ", e);
+  }
+};
+
 export const getContacts = async (supplierId) => {
   const contacts = [];
   const q = supplierId
@@ -40,6 +49,5 @@ export const getContacts = async (supplierId) => {
   querySnapshot.forEach((doc) => {
     contacts.push({ id: doc.id, ...doc.data() });
   });
-  console.log("getContacts result: ", contacts); // Debug log
   return contacts;
 };

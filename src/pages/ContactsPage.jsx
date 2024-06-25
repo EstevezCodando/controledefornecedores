@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getSuppliers } from "../components/SupplierForm/SupplierForm.operations";
 import ContactForm from "../components/ContactForm/ContactForm";
-import { getContacts } from "../components/ContactForm/ContactForm.operations";
+import {
+  getContacts,
+  deleteContact,
+} from "../components/ContactForm/ContactForm.operations";
 import {
   Box,
   Typography,
@@ -19,12 +22,12 @@ const ContactsPage = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [filter, setFilter] = useState({ name: "" });
 
   useEffect(() => {
     const fetchSuppliers = async () => {
       const suppliersData = await getSuppliers();
-      console.log("Fetched suppliers: ", suppliersData); // Debug log
       setSuppliers(suppliersData);
     };
     fetchSuppliers();
@@ -32,9 +35,7 @@ const ContactsPage = () => {
 
   const fetchContacts = useCallback(async () => {
     if (selectedSupplier) {
-      console.log("Fetching contacts for supplier: ", selectedSupplier); // Debug log
       const contactsData = await getContacts(selectedSupplier.id);
-      console.log("Fetched contacts: ", contactsData); // Debug log
       setContacts(contactsData);
     }
   }, [selectedSupplier]);
@@ -46,25 +47,32 @@ const ContactsPage = () => {
   const handleSupplierChange = (event) => {
     const supplierId = event.target.value;
     const supplier = suppliers.find((s) => s.id === supplierId);
-    console.log("Selected supplier: ", supplier); // Debug log
     setSelectedSupplier(supplier);
   };
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
-    console.log("Filter change: ", { name, value }); // Debug log
     setFilter((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSearch = async () => {
     if (selectedSupplier) {
-      console.log("Searching contacts for supplier: ", selectedSupplier); // Debug log
       const contactsData = await getContacts(selectedSupplier.id);
       const filteredContacts = contactsData.filter((contact) =>
         contact.name.toLowerCase().includes(filter.name.toLowerCase())
       );
-      console.log("Filtered contacts: ", filteredContacts); // Debug log
       setContacts(filteredContacts);
+    }
+  };
+
+  const handleEdit = (contact) => {
+    setSelectedContact(contact);
+  };
+
+  const handleDelete = async (contactId) => {
+    if (window.confirm("Tem certeza de que deseja excluir este contato?")) {
+      await deleteContact(contactId);
+      fetchContacts();
     }
   };
 
@@ -93,7 +101,12 @@ const ContactsPage = () => {
       <ContactForm
         suppliers={suppliers}
         selectedSupplier={selectedSupplier}
+        selectedContact={selectedContact}
         onContactAdded={fetchContacts}
+        onContactUpdated={() => {
+          setSelectedContact(null);
+          fetchContacts();
+        }}
       />
       {selectedSupplier && (
         <Box mt={4}>
@@ -140,6 +153,8 @@ const ContactsPage = () => {
               <Typography variant="h6">{contact.name}</Typography>
               <Typography>Email: {contact.email}</Typography>
               <Typography>Telefone: {contact.phone}</Typography>
+              <Button onClick={() => handleEdit(contact)}>Editar</Button>
+              <Button onClick={() => handleDelete(contact.id)}>Excluir</Button>
             </Paper>
           ))}
         </Box>
