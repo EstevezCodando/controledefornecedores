@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { NumericFormat } from "react-number-format";
 import {
   Box,
   Button,
@@ -169,20 +170,32 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
             />
           </Box>
           <Box mb={3}>
-            <TextField
-              label="Preço"
-              type="number"
-              fullWidth
-              variant="outlined"
-              {...register("price", {
+            <Controller
+              name="price"
+              control={control}
+              rules={{
                 required: "Preço é obrigatório e deve ser positivo",
                 min: {
                   value: 0.01,
                   message: "Preço deve ser positivo",
                 },
-              })}
-              error={!!errors.price}
-              helperText={errors.price?.message}
+              }}
+              render={({ field }) => (
+                <NumericFormat
+                  {...field}
+                  label="Preço"
+                  customInput={TextField}
+                  fullWidth
+                  variant="outlined"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="R$ "
+                  decimalScale={2}
+                  fixedDecimalScale
+                  error={!!errors.price}
+                  helperText={errors.price?.message}
+                />
+              )}
             />
           </Box>
           <Box mb={3}>
