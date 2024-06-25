@@ -11,7 +11,7 @@ import {
 import { addContact } from "./ContactForm.operations";
 import { validateEmail, validatePhone } from "../../utils/regex";
 
-const ContactForm = ({ suppliers, selectedSupplier }) => {
+const ContactForm = ({ suppliers, selectedSupplier, onContactAdded }) => {
   const {
     register,
     handleSubmit,
@@ -24,8 +24,11 @@ const ContactForm = ({ suppliers, selectedSupplier }) => {
   });
 
   const onSubmit = async (data) => {
+    data.supplierId = selectedSupplier ? selectedSupplier.id : "";
+    console.log("Submitting contact data: ", data); // Debug log
     await addContact(data);
     reset();
+    onContactAdded();
   };
 
   return (

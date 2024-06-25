@@ -13,6 +13,7 @@ const db = getFirestore();
 
 export const addContact = async (contactData) => {
   try {
+    console.log("Adding contact data: ", contactData); // Debug log
     const docRef = await addDoc(collection(db, "contacts"), contactData);
     console.log("Contact added with ID: ", docRef.id);
   } catch (e) {
@@ -39,5 +40,6 @@ export const getContacts = async (supplierId) => {
   querySnapshot.forEach((doc) => {
     contacts.push({ id: doc.id, ...doc.data() });
   });
+  console.log("getContacts result: ", contacts); // Debug log
   return contacts;
 };
