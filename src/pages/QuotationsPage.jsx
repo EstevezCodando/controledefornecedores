@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getQuotations } from "../components/QuotationForm/QuotationForm.operations";
+import {
+  getQuotations,
+  deleteQuotation,
+} from "../components/QuotationForm/QuotationForm.operations";
 import QuotationForm from "../components/QuotationForm/QuotationForm";
 import {
   Box,
@@ -48,6 +51,17 @@ const QuotationsPage = () => {
 
   const handleSearch = () => {
     fetchQuotations();
+  };
+
+  const handleEdit = (quotation) => {
+    setSelectedQuotation(quotation);
+  };
+
+  const handleDelete = async (quotationId) => {
+    if (window.confirm("Tem certeza de que deseja excluir esta cotação?")) {
+      await deleteQuotation(quotationId);
+      fetchQuotations();
+    }
   };
 
   return (
@@ -139,10 +153,18 @@ const QuotationsPage = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setSelectedQuotation(quotation)}
+              onClick={() => handleEdit(quotation)}
               sx={{ marginTop: 2 }}
             >
               Editar
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => handleDelete(quotation.id)}
+              sx={{ marginTop: 2, marginLeft: 2 }}
+            >
+              Excluir
             </Button>
           </Paper>
         ))}
