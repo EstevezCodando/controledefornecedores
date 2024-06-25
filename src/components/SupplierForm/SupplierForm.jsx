@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Box,
@@ -8,19 +8,34 @@ import {
   Container,
   Paper,
 } from "@mui/material";
-import { addSupplier } from "./SupplierForm.operations";
+import { addSupplier, updateSupplier } from "./SupplierForm.operations";
 import { validateEmail, validatePhone, validateCNPJ } from "../../utils/regex";
 
-const SupplierForm = () => {
+const SupplierForm = ({ selectedSupplier }) => {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm();
 
+  useEffect(() => {
+    if (selectedSupplier) {
+      setValue("name", selectedSupplier.name);
+      setValue("cnpj", selectedSupplier.cnpj);
+      setValue("address", selectedSupplier.address);
+      setValue("email", selectedSupplier.email);
+      setValue("phone", selectedSupplier.phone);
+    }
+  }, [selectedSupplier, setValue]);
+
   const onSubmit = async (data) => {
-    await addSupplier(data);
+    if (selectedSupplier) {
+      await updateSupplier(selectedSupplier.id, data);
+    } else {
+      await addSupplier(data);
+    }
     reset();
   };
 
@@ -36,7 +51,7 @@ const SupplierForm = () => {
         }}
       >
         <Typography variant="h5" component="h1" gutterBottom>
-          Cadastrar Fornecedor
+          {selectedSupplier ? "Editar Fornecedor" : "Cadastrar Fornecedor"}
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box mb={3}>
@@ -131,7 +146,7 @@ const SupplierForm = () => {
               type="submit"
               sx={{ borderRadius: 3 }}
             >
-              Salvar
+              {selectedSupplier ? "Atualizar" : "Salvar"}
             </Button>
             <Button
               variant="outlined"

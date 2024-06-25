@@ -1,13 +1,7 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Container, Paper } from "@mui/material";
+import { Container, Paper, Button } from "@mui/material";
 import styled from "styled-components";
-
-const columns = [
-  { field: "name", headerName: "Nome", flex: 1 },
-  { field: "email", headerName: "Email", flex: 1 },
-  { field: "phone", headerName: "Telefone", flex: 1 },
-];
 
 const TableContainer = styled(Paper)`
   height: 400px;
@@ -15,7 +9,23 @@ const TableContainer = styled(Paper)`
   margin-top: 20px;
 `;
 
-const DataTableComponent = ({ data }) => {
+const DataTableComponent = ({ data, onEdit, onDelete }) => {
+  const columns = [
+    { field: "name", headerName: "Nome", flex: 1 },
+    { field: "phone", headerName: "Telefone", flex: 1 },
+    {
+      field: "actions",
+      headerName: "Ações",
+      flex: 1,
+      renderCell: (params) => (
+        <div>
+          <Button onClick={() => onEdit(params.row)}>Editar</Button>
+          <Button onClick={() => onDelete(params.row)}>Excluir</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <Container>
       <TableContainer>
