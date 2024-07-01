@@ -15,7 +15,7 @@ const Login = ({ setUser }) => {
     const { message, user } = await authLogin(email, password);
     if (user) {
       setUser(user);
-      navigate("/suppliers");
+      navigate("/");
     } else {
       setMessage(message);
     }
@@ -26,7 +26,7 @@ const Login = ({ setUser }) => {
     const { message, user } = await authSignUp(email, password);
     if (user) {
       setUser(user);
-      navigate("/suppliers");
+      navigate("/");
     } else {
       setMessage(message);
     }

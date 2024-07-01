@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { NumericFormat } from "react-number-format";
+import { NumericFormat } from "react-number-format"; // Corrigido aqui
 import {
   Box,
   Button,
@@ -27,6 +27,7 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
     control,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: selectedQuotation || {},
@@ -58,15 +59,58 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
     }
   }, [selectedProduct, products, suppliers]);
 
-  const onSubmit = async (data) => {
+  useEffect(() => {
     if (selectedQuotation) {
-      await updateQuotation(selectedQuotation.id, data);
+      setValue("productId", selectedQuotation.productId);
+      setValue("supplierId", selectedQuotation.supplierId);
+      setValue("quotationDate", selectedQuotation.quotationDate);
+      setValue("price", selectedQuotation.price);
+      setValue("communicationMethod", selectedQuotation.communicationMethod);
+    }
+  }, [selectedQuotation, setValue]);
+
+  const onSubmit = async (data) => {
+    const product = products.find((p) => p.id === data.productId);
+    const supplier = suppliers.find((s) => s.id === data.supplierId);
+
+    const quotationData = {
+      ...data,
+      productName: product ? product.name : "",
+      supplierName: supplier ? supplier.name : "",
+    };
+
+    if (selectedQuotation) {
+      await updateQuotation(selectedQuotation.id, quotationData);
     } else {
-      await addQuotation(data);
+      await addQuotation(quotationData);
     }
     setSelectedQuotation(null);
     reset();
   };
+
+  const NumericFormatCustom = React.forwardRef(function NumericFormatCustom(
+    props,
+    ref
+  ) {
+    const { onChange, ...other } = props;
+    return (
+      <NumericFormat
+        {...other}
+        getInputRef={ref}
+        onValueChange={(values) => {
+          onChange({
+            target: {
+              name: props.name,
+              value: values.value,
+            },
+          });
+        }}
+        thousandSeparator="."
+        decimalSeparator=","
+        prefix="R$ "
+      />
+    );
+  });
 
   return (
     <Container maxWidth="sm">
@@ -181,17 +225,14 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
                 },
               }}
               render={({ field }) => (
-                <NumericFormat
+                <TextField
                   {...field}
                   label="Preço"
-                  customInput={TextField}
                   fullWidth
                   variant="outlined"
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  prefix="R$ "
-                  decimalScale={2}
-                  fixedDecimalScale
+                  InputProps={{
+                    inputComponent: NumericFormatCustom,
+                  }}
                   error={!!errors.price}
                   helperText={errors.price?.message}
                 />

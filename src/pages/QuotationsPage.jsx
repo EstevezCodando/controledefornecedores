@@ -27,7 +27,20 @@ const QuotationsPage = () => {
 
   const fetchQuotations = useCallback(async () => {
     const quotationsData = await getQuotations(filter);
-    setQuotations(quotationsData);
+    const productsData = await getProducts();
+    const suppliersData = await getSuppliers();
+
+    // Adiciona nomes de produtos e fornecedores às cotações
+    const quotationsWithNames = quotationsData.map((quotation) => {
+      const product = productsData.find((p) => p.id === quotation.productId);
+      const supplier = suppliersData.find((s) => s.id === quotation.supplierId);
+      return {
+        ...quotation,
+        productName: product ? product.name : "",
+        supplierName: supplier ? supplier.name : "",
+      };
+    });
+    setQuotations(quotationsWithNames);
   }, [filter]);
 
   useEffect(() => {

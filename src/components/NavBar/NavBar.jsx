@@ -1,11 +1,13 @@
 import React from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Typography, Box } from "@mui/material";
+import { Typography } from "@mui/material";
 import {
   NavBarContainer,
   NavToolbar,
   NavButton,
+  NavButtonContainer,
   LogoutButton,
+  LogoutButtonContainer,
 } from "./NavBar.styles";
 
 const NavBar = ({ user, onLogout }) => {
@@ -22,7 +24,14 @@ const NavBar = ({ user, onLogout }) => {
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Meu App
         </Typography>
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+        <NavButtonContainer>
+          <NavButton
+            component={Link}
+            to="/"
+            className={location.pathname === "/" ? "active" : ""}
+          >
+            Home
+          </NavButton>
           <NavButton
             component={Link}
             to="/suppliers"
@@ -58,8 +67,10 @@ const NavBar = ({ user, onLogout }) => {
           >
             Consultas
           </NavButton>
-        </Box>
-        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </NavButtonContainer>
+        <LogoutButtonContainer>
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </LogoutButtonContainer>
       </NavToolbar>
     </NavBarContainer>
   );

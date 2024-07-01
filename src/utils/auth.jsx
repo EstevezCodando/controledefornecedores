@@ -63,7 +63,7 @@ const isLoggedIn = (navigate) => {
 
   if (user) {
     if (route === "/login") {
-      navigate("/suppliers");
+      navigate("/");
     } else {
       return;
     }

@@ -12,6 +12,7 @@ import ContactsPage from "./pages/ContactsPage";
 import ProductsPage from "./pages/ProductsPage";
 import QuotationsPage from "./pages/QuotationsPage";
 import ViewQuotationsPage from "./pages/ViewQuotationsPage";
+import Home from "./pages/Home/Home";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GlobalStyle from "./styles/GlobalStyles";
@@ -36,6 +37,14 @@ const App = () => {
         {user && <NavBar user={user} onLogout={handleLogout} />}
         <Routes>
           <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute user={user}>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/suppliers"
             element={
@@ -76,10 +85,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="*"
-            element={<Navigate to={user ? "/suppliers" : "/login"} />}
-          />
+          <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
         </Routes>
       </Router>
     </>
