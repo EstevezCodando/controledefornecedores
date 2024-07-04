@@ -1,21 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   getQuotations,
   deleteQuotation,
   addQuotation,
 } from "../../components/QuotationForm/QuotationForm.operations";
 import QuotationForm from "../../components/QuotationForm/QuotationForm";
+import { Avatar } from "../../components";
+import avatarImage from "../../assets/img/avatar.jpg";
 import {
   Container,
   Box,
-  Fab,
   Grid,
   TextField,
-  Checkbox,
   Typography,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Checkbox,
 } from "@mui/material";
-import { TableList, IconButton, Loading, Avatar } from "../../components";
-import { Bar, Line } from "react-chartjs-2";
+import { DataGrid } from "@mui/x-data-grid";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,7 +35,10 @@ import {
   LineElement,
   TimeScale,
 } from "chart.js";
-import avatarImage from "../../assets/img/avatar.jpg";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
+import Fab from "../../components/Fab";
 import { getProducts } from "../../components/ProductForm/ProductForm.operations";
 import { getSuppliers } from "../../components/SupplierForm/SupplierForm.operations";
 
@@ -47,37 +57,46 @@ ChartJS.register(
 const Home = () => {
   const [quotations, setQuotations] = useState([]);
   const [products, setProducts] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({ name: "" });
+  const [selectedProduct, setSelectedProduct] = useState("");
+
+  const fetchQuotations = useCallback(async () => {
+    const [quotationsData, productsData, suppliersData] = await Promise.all([
+      getQuotations(),
+      getProducts(filter),
+      getSuppliers(),
+    ]);
+
+    const quotationsWithNames = quotationsData.map((quotation) => {
+      const product = productsData.find((p) => p.id === quotation.productId);
+      const supplier = suppliersData.find((s) => s.id === quotation.supplierId);
+      return {
+        ...quotation,
+        productName: product ? product.name : "",
+        supplierName: supplier ? supplier.name : "",
+      };
+    });
+
+    setQuotations(quotationsWithNames);
+    setProducts(productsData);
+    setLoading(false);
+  }, [filter]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [quotationsData, productsData, suppliersData] = await Promise.all([
-        getQuotations(),
-        getProducts(),
-        getSuppliers(),
-      ]);
+    fetchQuotations();
+  }, [fetchQuotations]);
 
-      const quotationsWithNames = quotationsData.map((quotation) => {
-        const product = productsData.find((p) => p.id === quotation.productId);
-        const supplier = suppliersData.find(
-          (s) => s.id === quotation.supplierId
-        );
-        return {
-          ...quotation,
-          productName: product ? product.name : "",
-          supplierName: supplier ? supplier.name : "",
-        };
-      });
+  const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+    setFilter((prev) => ({ ...prev, [name]: value }));
+    fetchQuotations(); // Adicionar busca instantânea ao digitar
+  };
 
-      setQuotations(quotationsWithNames);
-      setProducts(productsData);
-      setSuppliers(suppliersData);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+  const handleProductChange = (event) => {
+    setSelectedProduct(event.target.value);
+  };
 
   const handleEdit = (quotation) => {
     setSelectedQuotation(quotation);
@@ -108,58 +127,162 @@ const Home = () => {
     { field: "quotationDate", headerName: "Data da Cotação", flex: 1 },
     { field: "price", headerName: "Preço", flex: 1 },
     {
-      field: "actions",
-      headerName: "Ações",
-      flex: 1,
+      field: "edit",
+      headerName: "Editar",
+      flex: 0.5,
       renderCell: (params) => (
-        <Box display="flex" justifyContent="center" gap={2}>
-          <IconButton type="edit" onClick={() => handleEdit(params.row)} />
-          <IconButton
-            type="delete"
-            onClick={() => handleDelete(params.row.id)}
-          />
-        </Box>
+        <IconButton size="small" onClick={() => handleEdit(params.row)}>
+          <EditIcon />
+        </IconButton>
+      ),
+    },
+    {
+      field: "delete",
+      headerName: "Deletar",
+      flex: 0.5,
+      renderCell: (params) => (
+        <IconButton size="small" onClick={() => handleDelete(params.row.id)}>
+          <DeleteIcon />
+        </IconButton>
       ),
     },
   ];
 
   if (loading) {
-    return <Loading />;
+    return <div>Loading...</div>;
   }
 
-  const barData = {
-    labels: quotations.map((q) => q.productName),
-    datasets: [
-      {
-        label: "Cotações por Produto",
-        data: quotations.map((q) => q.price),
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
-      },
-    ],
-  };
+  const filteredQuotations = quotations.filter((q) =>
+    q.productName.toLowerCase().includes(filter.name.toLowerCase())
+  );
+
+  const groupedByProduct = filteredQuotations.reduce((acc, cur) => {
+    if (!acc[cur.productId]) {
+      acc[cur.productId] = [];
+    }
+    acc[cur.productId].push(cur);
+    return acc;
+  }, {});
+
+  const colors = [
+    "rgba(75, 192, 192, 1)",
+    "rgba(192, 75, 192, 1)",
+    "rgba(192, 192, 75, 1)",
+    "rgba(75, 75, 192, 1)",
+    "rgba(192, 75, 75, 1)",
+    "rgba(75, 192, 75, 1)",
+  ];
 
   const lineData = {
-    labels: quotations.map((q) => q.quotationDate),
-    datasets: [
-      {
-        label: "Evolução do Preço",
-        data: quotations.map((q) => q.price),
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-      },
-    ],
+    labels: Array.from(new Set(filteredQuotations.map((q) => q.quotationDate))),
+    datasets: selectedProduct
+      ? [
+          {
+            label: products.find((p) => p.id === selectedProduct)?.name,
+            data: groupedByProduct[selectedProduct]?.map((q) => q.price) || [],
+            borderColor: colors[0],
+            backgroundColor: colors[0].replace("1)", "0.2)"),
+          },
+        ]
+      : Object.keys(groupedByProduct).map((productId, index) => ({
+          label: products.find((p) => p.id === productId)?.name,
+          data: groupedByProduct[productId].map((q) => q.price),
+          borderColor: colors[index % colors.length],
+          backgroundColor: colors[index % colors.length].replace("1)", "0.2)"),
+        })),
   };
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" align="center" gutterBottom>
         Lista de Cotações
       </Typography>
       <QuotationForm
         selectedQuotation={selectedQuotation}
         setSelectedQuotation={setSelectedQuotation}
       />
-      <TableList data={quotations} columns={columns} />
+      <Box mt={4} mb={2}>
+        <Typography variant="h6" component="h2" align="center">
+          Buscar Produtos
+        </Typography>
+        <Box display="flex" justifyContent="center" mb={2}>
+          <TextField
+            label="Nome"
+            name="name"
+            value={filter.name}
+            onChange={handleFilterChange}
+            variant="outlined"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        <Box display="flex" justifyContent="center" mb={2}>
+          <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+            <InputLabel>Produto</InputLabel>
+            <Select
+              value={selectedProduct}
+              onChange={handleProductChange}
+              label="Produto"
+            >
+              <MenuItem value="">
+                <em>Todos</em>
+              </MenuItem>
+              {products.map((product) => (
+                <MenuItem key={product.id} value={product.id}>
+                  {product.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          height: 400,
+          width: "100%",
+          mt: 4,
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <DataGrid
+          rows={filteredQuotations}
+          columns={columns}
+          pageSize={5}
+          rowsPerPageOptions={[5, 10, 20]}
+          pagination
+          sx={{
+            "& .MuiDataGrid-cell": {
+              padding: "10px",
+              backgroundColor: "rgba(245, 243, 243)",
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#f5f5f5",
+              borderBottom: "1px solid rgba(224, 224, 224, 1)",
+            },
+            "& .MuiDataGrid-footerContainer": {
+              backgroundColor: "#f5f5f5",
+              borderTop: "1px solid rgba(224, 224, 224, 1)",
+            },
+            "& .MuiDataGrid-cell, & .MuiDataGrid-cellContent": {
+              color: "#333",
+              fontWeight: 500,
+            },
+            "& .MuiIconButton-root": {
+              padding: "4px",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.1)",
+              },
+            },
+          }}
+        />
+      </Box>
       <Box mt={4} mb={4}>
         <Grid container spacing={2} justifyContent="space-between">
           <Grid item xs={12} md={6}>
@@ -175,17 +298,49 @@ const Home = () => {
           </Grid>
         </Grid>
       </Box>
-      <Box mt={4} mb={4}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          Gráfico de Cotações por Produto
-        </Typography>
-        <Bar data={barData} />
-      </Box>
-      <Box mt={4} mb={4}>
-        <Typography variant="h5" component="h2" gutterBottom>
+      <Box
+        mt={4}
+        mb={4}
+        sx={{
+          backgroundColor: "#2F4F4F",
+          borderRadius: "16px",
+          padding: "16px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h2"
+          gutterBottom
+          align="center"
+          color="white"
+        >
           Evolução do Preço das Cotações
         </Typography>
-        <Line data={lineData} />
+        <Line
+          data={lineData}
+          options={{
+            scales: {
+              x: {
+                grid: {
+                  color: "gray",
+                },
+              },
+              y: {
+                grid: {
+                  color: "gray",
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "white",
+                },
+              },
+            },
+          }}
+        />
       </Box>
       <Box display="flex" justifyContent="center" mt={4}>
         <Avatar src={avatarImage} alt="User Avatar" />

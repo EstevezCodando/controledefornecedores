@@ -9,11 +9,19 @@ import {
 } from "firebase/firestore";
 const db = getFirestore();
 
-export const getProducts = async (filter) => {
+export const getProducts = async (filter = {}) => {
   const products = [];
   const querySnapshot = await getDocs(collection(db, "products"));
   querySnapshot.forEach((doc) => {
-    products.push({ id: doc.id, ...doc.data() });
+    const product = doc.data();
+    if (
+      (!filter.name ||
+        product.name.toLowerCase().includes(filter.name.toLowerCase())) &&
+      (!filter.category ||
+        product.category.toLowerCase().includes(filter.category.toLowerCase()))
+    ) {
+      products.push({ id: doc.id, ...doc.data() });
+    }
   });
   return products;
 };

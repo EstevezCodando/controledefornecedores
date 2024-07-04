@@ -10,56 +10,44 @@ import {
   Container,
   Paper,
   Button,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
+  TextField,
 } from "@mui/material";
-import { getProducts } from "../components/ProductForm/ProductForm.operations";
-import { getSuppliers } from "../components/SupplierForm/SupplierForm.operations";
 
 const QuotationsPage = () => {
   const [quotations, setQuotations] = useState([]);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
-  const [filter, setFilter] = useState({ productId: "", supplierId: "" });
-  const [products, setProducts] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
+  const [filter, setFilter] = useState({ search: "" });
 
   const fetchQuotations = useCallback(async () => {
     const quotationsData = await getQuotations(filter);
-    const productsData = await getProducts();
-    const suppliersData = await getSuppliers();
 
-    // Adiciona nomes de produtos e fornecedores às cotações
-    const quotationsWithNames = quotationsData.map((quotation) => {
-      const product = productsData.find((p) => p.id === quotation.productId);
-      const supplier = suppliersData.find((s) => s.id === quotation.supplierId);
-      return {
-        ...quotation,
-        productName: product ? product.name : "",
-        supplierName: supplier ? supplier.name : "",
-      };
+    // Filtragem adicional baseada na pesquisa por texto
+    const filteredQuotations = quotationsData.filter((quotation) => {
+      const searchLower = filter.search.toLowerCase();
+      return (
+        (quotation.productName &&
+          quotation.productName.toLowerCase().includes(searchLower)) ||
+        (quotation.supplierName &&
+          quotation.supplierName.toLowerCase().includes(searchLower)) ||
+        (quotation.quotationDate &&
+          quotation.quotationDate.toLowerCase().includes(searchLower)) ||
+        (quotation.price && quotation.price.toString().includes(searchLower)) ||
+        (quotation.communicationMethod &&
+          quotation.communicationMethod.toLowerCase().includes(searchLower))
+      );
     });
-    setQuotations(quotationsWithNames);
+
+    setQuotations(filteredQuotations);
   }, [filter]);
 
   useEffect(() => {
     fetchQuotations();
   }, [fetchQuotations]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const productsData = await getProducts();
-      setProducts(productsData);
-      const suppliersData = await getSuppliers();
-      setSuppliers(suppliersData);
-    };
-    fetchData();
-  }, []);
-
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
     setFilter((prev) => ({ ...prev, [name]: value }));
+    fetchQuotations();
   };
 
   const handleSearch = () => {
@@ -90,64 +78,34 @@ const QuotationsPage = () => {
         <Typography variant="h6" component="h2">
           Buscar Cotações
         </Typography>
-        <Box
-          display="flex"
-          flexDirection="column"
-          justifyContent="space-between"
-          mb={2}
-        >
-          <FormControl variant="outlined" sx={{ marginBottom: 2 }}>
-            <InputLabel id="product-select-label">Produto</InputLabel>
-            <Select
-              labelId="product-select-label"
-              name="productId"
-              value={filter.productId}
-              onChange={handleFilterChange}
-              label="Produto"
-            >
-              {products.map((product) => (
-                <MenuItem key={product.id} value={product.id}>
-                  {product.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl variant="outlined" sx={{ marginBottom: 2 }}>
-            <InputLabel id="supplier-select-label">Fornecedor</InputLabel>
-            <Select
-              labelId="supplier-select-label"
-              name="supplierId"
-              value={filter.supplierId}
-              onChange={handleFilterChange}
-              label="Fornecedor"
-            >
-              {suppliers.map((supplier) => (
-                <MenuItem key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Box display="flex" justifyContent="space-between">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSearch}
-              sx={{ marginRight: 2 }}
-            >
-              Buscar
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => {
-                setFilter({ productId: "", supplierId: "" });
-                fetchQuotations();
-              }}
-            >
-              Limpar
-            </Button>
-          </Box>
+        <TextField
+          label="Pesquisar"
+          name="search"
+          value={filter.search}
+          onChange={handleFilterChange}
+          variant="outlined"
+          fullWidth
+          sx={{ marginBottom: 2 }}
+        />
+        <Box display="flex" justifyContent="space-between">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSearch}
+            sx={{ marginRight: 2 }}
+          >
+            Buscar
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => {
+              setFilter({ search: "" });
+              fetchQuotations();
+            }}
+          >
+            Limpar
+          </Button>
         </Box>
       </Box>
       <Box mt={4}>
@@ -175,7 +133,7 @@ const QuotationsPage = () => {
               variant="outlined"
               color="secondary"
               onClick={() => handleDelete(quotation.id)}
-              sx={{ marginTop: 2, marginLeft: 2 }}
+              sx={{ marginTop: 2 }}
             >
               Excluir
             </Button>

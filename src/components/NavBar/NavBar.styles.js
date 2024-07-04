@@ -17,7 +17,7 @@ export const NavToolbar = styled(Toolbar)`
   padding: 0 20px;
 
   @media (max-width: 600px) {
-    flex-direction: column;
+    flex-direction: row;
     padding: 10px 0;
   }
 `;
@@ -28,9 +28,7 @@ export const NavButtonContainer = styled(Box)`
   gap: 1rem;
 
   @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    display: none;
   }
 `;
 
@@ -57,8 +55,7 @@ export const LogoutButtonContainer = styled(Box)`
   margin-left: auto;
 
   @media (max-width: 600px) {
-    margin-left: 0;
-    margin-top: 1rem;
+    display: none;
   }
 `;
 
@@ -77,4 +74,12 @@ export const LogoutButton = styled(Button)`
     background-color: #1976d2;
   }
   border: 1px solid #ffffff;
+`;
+
+export const HamburgerMenu = styled(Box)`
+  display: none;
+
+  @media (max-width: 600px) {
+    display: block;
+  }
 `;

@@ -49,7 +49,7 @@ const ProductsPage = () => {
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" align="center" gutterBottom>
         Cadastro de Produtos
       </Typography>
       <ProductForm
@@ -121,7 +121,7 @@ const ProductsPage = () => {
               variant="outlined"
               color="secondary"
               onClick={() => handleDelete(product.id)}
-              sx={{ marginTop: 2, marginLeft: 2 }}
+              sx={{ marginTop: 2 }}
             >
               Excluir
             </Button>
