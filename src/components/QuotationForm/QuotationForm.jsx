@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { NumericFormat } from "react-number-format"; // Corrigido aqui
+import { NumericFormat } from "react-number-format";
 import {
   Box,
   Button,
