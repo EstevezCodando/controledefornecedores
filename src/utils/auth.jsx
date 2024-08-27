@@ -1,78 +1,14 @@
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
+  signInWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
 } from "firebase/auth";
-import { auth } from "../firebase/config";
-
-const authLogin = async (email, password) => {
-  try {
-    const response = await signInWithEmailAndPassword(auth, email, password);
-    const user = response.user;
-    if (user.emailVerified) {
-      window.localStorage.setItem("user", JSON.stringify(user));
-      return { message: "", user };
-    } else {
-      await sendEmailVerification(user);
-      return {
-        message: "Confirme seu e-mail antes de fazer login!",
-        user: null,
-      };
-    }
-  } catch (e) {
-    return { message: handleFirebaseError(e), user: null };
-  }
-};
-
-const authSignUp = async (email, password) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const user = userCredential.user;
-    await sendEmailVerification(user);
-    return {
-      message: "Conta criada com sucesso! Por favor, verifique seu email.",
-      user,
-    };
-  } catch (e) {
-    return { message: handleFirebaseError(e), user: null };
-  }
-};
-
-const authLogout = async (navigate) => {
-  await signOut(auth);
-  window.localStorage.removeItem("user");
-  navigate("/login"); // Redirecionar para a tela de login
-};
-
-const getUser = () => {
-  try {
-    return JSON.parse(window.localStorage.getItem("user"));
-  } catch (e) {
-    return null;
-  }
-};
-
-const isLoggedIn = (navigate) => {
-  const user = window.localStorage.getItem("user");
-  const route = window.location.pathname;
-
-  if (user) {
-    if (route === "/login") {
-      navigate("/");
-    } else {
-      return;
-    }
-  } else {
-    navigate("/login");
-  }
-};
+import { ref, set, get } from "firebase/database";
+import { auth, db } from "../firebase/config";
 
 const handleFirebaseError = (error) => {
+  console.error("Firebase Error:", error); // Adicionado console.log para erros
   switch (error.code) {
     case "auth/invalid-email":
       return "E-mail inválido.";
@@ -93,4 +29,127 @@ const handleFirebaseError = (error) => {
   }
 };
 
-export { authLogin, authSignUp, authLogout, getUser, isLoggedIn };
+
+// Função para verificar se o usuário está bloqueado
+const isUserBlocked = async (userId) => {
+  const userRef = ref(db, `users/${userId}/isBlocked`);
+  const snapshot = await get(userRef);
+  return snapshot.exists() && snapshot.val() === true;
+};
+
+// Função para login de usuário
+export const authLogin = async (email, password) => {
+  try {
+    const response = await signInWithEmailAndPassword(auth, email, password);
+    const user = response.user;
+
+    // Verificar se o usuário está bloqueado
+    const blocked = await isUserBlocked(user.uid);
+    if (blocked) {
+      await signOut(auth);
+      return {
+        message: "Usuário bloqueado. Contate o administrador.",
+        user: null,
+      };
+    }
+
+    // Recuperar dados adicionais do usuário (incluindo o nome)
+    const userSnapshot = await get(ref(db, `users/${user.uid}`));
+    if (userSnapshot.exists()) {
+      const userData = userSnapshot.val();
+      const userWithDetails = {
+        ...user,
+        name: userData.name,
+        userType: userData.userType,
+      };
+      window.localStorage.setItem("user", JSON.stringify(userWithDetails));
+      return { message: "", user: userWithDetails };
+    } else {
+      return { message: "Dados do usuário não encontrados.", user: null };
+    }
+  } catch (e) {
+    return { message: handleFirebaseError(e), user: null };
+  }
+};
+
+export const authSignUp = async (
+  email,
+  password,
+  name,
+  userType = "collaborator"
+) => {
+  console.log("authSignUp called with:", { email, password, name, userType }); // Logando os parâmetros recebidos
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    console.log("User created:", user); // Logando o usuário criado
+
+    await sendEmailVerification(user);
+    console.log("Verification email sent to:", user.email); // Logando o envio do email de verificação
+
+    // Armazenar tipo de usuário no Realtime Database
+    await set(ref(db, `users/${user.uid}`), {
+      email: user.email,
+      name: name,
+      userType: userType,
+      createdAt: new Date().toISOString(),
+      status: "active",
+    });
+    console.log("User data stored in Realtime Database"); // Logando o armazenamento no Realtime Database
+
+    return {
+      message: "Conta criada com sucesso! Por favor, verifique seu email.",
+      user,
+    };
+  } catch (e) {
+    console.error("Error in authSignUp:", e); // Logando o erro
+    return { message: handleFirebaseError(e), user: null };
+  }
+};
+
+// Função para logout
+export const authLogout = async (navigate) => {
+  await signOut(auth);
+  window.localStorage.removeItem("user");
+  navigate("/login");
+};
+
+// Função para obter o usuário atual
+export const getUser = () => {
+  try {
+    return JSON.parse(window.localStorage.getItem("user"));
+  } catch (e) {
+    return null;
+  }
+};
+
+// Função para verificar se o usuário é administrador
+export const isAdmin = async () => {
+  const user = auth.currentUser;
+  if (user) {
+    const userSnapshot = await get(ref(db, `users/${user.uid}`));
+    if (userSnapshot.exists()) {
+      return userSnapshot.val().userType === "admin";
+    }
+  }
+  return false;
+};
+
+// Função para verificar se o usuário está logado e redirecionar se necessário
+export const isLoggedIn = (navigate) => {
+  const user = window.localStorage.getItem("user");
+  const route = window.location.pathname;
+
+  if (user) {
+    if (route === "/login") {
+      navigate("/");
+    }
+  } else {
+    navigate("/login");
+  }
+};

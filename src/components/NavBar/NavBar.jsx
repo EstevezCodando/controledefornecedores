@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -19,10 +19,23 @@ import {
   HamburgerMenu,
 } from "./NavBar.styles";
 
+import { isAdminUser } from "../../utils/authHelpers";
+
 const NavBar = ({ user, onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const adminStatus = await isAdminUser(user.uid);
+        setIsAdmin(adminStatus);
+      }
+    };
+    checkAdminStatus();
+  }, [user]);
 
   const handleLogout = () => {
     onLogout(navigate);
@@ -36,7 +49,7 @@ const NavBar = ({ user, onLogout }) => {
     <NavBarContainer>
       <NavToolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Controle de Fornecedores
+          Controle de Cotações {user && `- ${user.name}`}
         </Typography>
         <HamburgerMenu>
           <IconButton
@@ -58,31 +71,10 @@ const NavBar = ({ user, onLogout }) => {
           </NavButton>
           <NavButton
             component={Link}
-            to="/suppliers"
-            className={location.pathname === "/suppliers" ? "active" : ""}
+            to="/requests"
+            className={location.pathname === "/requests" ? "active" : ""}
           >
-            Fornecedores
-          </NavButton>
-          <NavButton
-            component={Link}
-            to="/contacts"
-            className={location.pathname === "/contacts" ? "active" : ""}
-          >
-            Contatos
-          </NavButton>
-          <NavButton
-            component={Link}
-            to="/products"
-            className={location.pathname === "/products" ? "active" : ""}
-          >
-            Produtos
-          </NavButton>
-          <NavButton
-            component={Link}
-            to="/quotations"
-            className={location.pathname === "/quotations" ? "active" : ""}
-          >
-            Cotações
+            Requisições
           </NavButton>
           <NavButton
             component={Link}
@@ -91,6 +83,54 @@ const NavBar = ({ user, onLogout }) => {
           >
             Consultas
           </NavButton>
+          {isAdmin && (
+            <>
+              <NavButton
+                component={Link}
+                to="/suppliers"
+                className={location.pathname === "/suppliers" ? "active" : ""}
+              >
+                Fornecedores
+              </NavButton>
+              <NavButton
+                component={Link}
+                to="/contacts"
+                className={location.pathname === "/contacts" ? "active" : ""}
+              >
+                Contatos
+              </NavButton>
+              <NavButton
+                component={Link}
+                to="/products"
+                className={location.pathname === "/products" ? "active" : ""}
+              >
+                Produtos
+              </NavButton>
+              <NavButton
+                component={Link}
+                to="/quotations"
+                className={location.pathname === "/quotations" ? "active" : ""}
+              >
+                Cotações
+              </NavButton>
+              <NavButton
+                component={Link}
+                to="/admin/users"
+                className={location.pathname === "/admin/users" ? "active" : ""}
+              >
+                Gerenciar Usuários
+              </NavButton>
+              <NavButton
+                component={Link}
+                to="/admin/create-user"
+                className={
+                  location.pathname === "/admin/create-user" ? "active" : ""
+                }
+              >
+                Criar Usuário
+              </NavButton>
+            </>
+          )}
         </NavButtonContainer>
         <LogoutButtonContainer>
           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
@@ -104,34 +144,10 @@ const NavBar = ({ user, onLogout }) => {
           <ListItem
             button
             component={Link}
-            to="/suppliers"
+            to="/request"
             onClick={handleDrawerToggle}
           >
-            <ListItemText primary="Fornecedores" />
-          </ListItem>
-          <ListItem
-            button
-            component={Link}
-            to="/contacts"
-            onClick={handleDrawerToggle}
-          >
-            <ListItemText primary="Contatos" />
-          </ListItem>
-          <ListItem
-            button
-            component={Link}
-            to="/products"
-            onClick={handleDrawerToggle}
-          >
-            <ListItemText primary="Produtos" />
-          </ListItem>
-          <ListItem
-            button
-            component={Link}
-            to="/quotations"
-            onClick={handleDrawerToggle}
-          >
-            <ListItemText primary="Cotações" />
+            <ListItemText primary="Requisições" />
           </ListItem>
           <ListItem
             button
@@ -141,6 +157,68 @@ const NavBar = ({ user, onLogout }) => {
           >
             <ListItemText primary="Consultas" />
           </ListItem>
+          {isAdmin && (
+            <>
+              <ListItem
+                button
+                component={Link}
+                to="/suppliers"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Fornecedores" />
+              </ListItem>
+
+              <ListItem
+                button
+                component={Link}
+                to="/contacts"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Contatos" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/products"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Produtos" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/quotations"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Cotações" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/requests" 
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Requisições" />
+              </ListItem>
+
+              <ListItem
+                button
+                component={Link}
+                to="/admin/users"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Gerenciar Usuários" />
+              </ListItem>
+              <ListItem
+                button
+                component={Link}
+                to="/admin/create-user"
+                onClick={handleDrawerToggle}
+              >
+                <ListItemText primary="Criar Usuário" />
+              </ListItem>
+            </>
+          )}
           <ListItem button onClick={handleLogout}>
             <ListItemText primary="Logout" />
           </ListItem>

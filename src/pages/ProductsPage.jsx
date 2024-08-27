@@ -57,17 +57,23 @@ const ProductsPage = () => {
         setSelectedProduct={setSelectedProduct}
       />
       <Box mt={4} mb={2}>
-        <Typography variant="h6" component="h2">
+        <Typography variant="h6" component="h2" gutterBottom>
           Buscar Produtos
         </Typography>
-        <Box display="flex" justifyContent="space-between" mb={2}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="flex-start"
+          gap={2}
+          mb={2}
+        >
           <TextField
             label="Nome"
             name="name"
             value={filter.name}
             onChange={handleFilterChange}
             variant="outlined"
-            sx={{ marginRight: 2 }}
+            fullWidth
           />
           <TextField
             label="Categoria"
@@ -75,26 +81,23 @@ const ProductsPage = () => {
             value={filter.category}
             onChange={handleFilterChange}
             variant="outlined"
-            sx={{ marginRight: 2 }}
+            fullWidth
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSearch}
-            sx={{ marginRight: 2 }}
-          >
-            Buscar
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              setFilter({ name: "", category: "" });
-              fetchProducts();
-            }}
-          >
-            Limpar
-          </Button>
+          <Box display="flex" gap={2}>
+            <Button variant="contained" color="primary" onClick={handleSearch}>
+              Buscar
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setFilter({ name: "", category: "" });
+                fetchProducts();
+              }}
+            >
+              Limpar
+            </Button>
+          </Box>
         </Box>
       </Box>
       <Box mt={4}>
@@ -106,6 +109,9 @@ const ProductsPage = () => {
             <Typography variant="h6">{product.name}</Typography>
             <Typography>Descrição: {product.description}</Typography>
             <Typography>Categoria: {product.category}</Typography>
+            <Typography>
+              Fornecedores: {product.suppliers.join(", ")}
+            </Typography>
             <Typography>
               Especificações Técnicas: {product.technicalSpecifications}
             </Typography>

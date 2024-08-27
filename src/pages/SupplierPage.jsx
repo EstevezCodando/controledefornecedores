@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SupplierForm from "../components/SupplierForm/SupplierForm";
 import DataTableComponent from "../components/DataTable/DataTable";
-import { db } from "../firebase/config";
+import { firestoreDb } from "../firebase/config";
 import { collection, getDocs } from "firebase/firestore";
 import { Box, Typography } from "@mui/material";
 import {
@@ -15,7 +15,7 @@ const SupplierPage = () => {
 
   useEffect(() => {
     const fetchSuppliers = async () => {
-      const querySnapshot = await getDocs(collection(db, "suppliers"));
+      const querySnapshot = await getDocs(collection(firestoreDb, "suppliers"));
       const suppliersList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),

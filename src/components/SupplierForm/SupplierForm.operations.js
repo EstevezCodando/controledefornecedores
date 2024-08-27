@@ -8,11 +8,11 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
-import { db } from "../../firebase/config"; // Importar a configuração do Firebase
+import { firestoreDb } from "../../firebase/config"; // Importar a configuração do Firebase
 
 export const getSuppliers = async () => {
   const suppliers = [];
-  const querySnapshot = await getDocs(collection(db, "suppliers"));
+  const querySnapshot = await getDocs(collection(firestoreDb, "suppliers"));
   querySnapshot.forEach((doc) => {
     suppliers.push({ id: doc.id, ...doc.data() });
   });
@@ -21,7 +21,7 @@ export const getSuppliers = async () => {
 
 export const addSupplier = async (supplierData) => {
   try {
-    const docRef = await addDoc(collection(db, "suppliers"), supplierData);
+    const docRef = await addDoc(collection(firestoreDb, "suppliers"), supplierData);
     console.log("Supplier added with ID: ", docRef.id);
   } catch (e) {
     console.error("Error adding supplier: ", e);
@@ -30,7 +30,7 @@ export const addSupplier = async (supplierData) => {
 
 export const updateSupplier = async (id, updatedData) => {
   try {
-    const supplierRef = doc(db, "suppliers", id);
+    const supplierRef = doc(firestoreDb, "suppliers", id);
     await updateDoc(supplierRef, updatedData);
     console.log("Supplier updated with ID: ", id);
   } catch (e) {
@@ -46,21 +46,21 @@ export const getSupplierDependencies = async (supplierId) => {
   };
 
   const contactsQuery = query(
-    collection(db, "contacts"),
+    collection(firestoreDb, "contacts"),
     where("supplierId", "==", supplierId)
   );
   const contactsSnapshot = await getDocs(contactsQuery);
   contactsSnapshot.forEach((doc) => dependencies.contacts.push(doc.data()));
 
   const productsQuery = query(
-    collection(db, "products"),
+    collection(firestoreDb, "products"),
     where("supplierId", "==", supplierId)
   );
   const productsSnapshot = await getDocs(productsQuery);
   productsSnapshot.forEach((doc) => dependencies.products.push(doc.data()));
 
   const quotationsQuery = query(
-    collection(db, "quotations"),
+    collection(firestoreDb, "quotations"),
     where("supplierId", "==", supplierId)
   );
   const quotationsSnapshot = await getDocs(quotationsQuery);
@@ -71,7 +71,7 @@ export const getSupplierDependencies = async (supplierId) => {
 
 export const deleteSupplier = async (supplierId) => {
   const contactsQuery = query(
-    collection(db, "contacts"),
+    collection(firestoreDb, "contacts"),
     where("supplierId", "==", supplierId)
   );
   const contactsSnapshot = await getDocs(contactsQuery);
@@ -80,7 +80,7 @@ export const deleteSupplier = async (supplierId) => {
   });
 
   const productsQuery = query(
-    collection(db, "products"),
+    collection(firestoreDb, "products"),
     where("supplierId", "==", supplierId)
   );
   const productsSnapshot = await getDocs(productsQuery);
@@ -89,7 +89,7 @@ export const deleteSupplier = async (supplierId) => {
   });
 
   const quotationsQuery = query(
-    collection(db, "quotations"),
+    collection(firestoreDb, "quotations"),
     where("supplierId", "==", supplierId)
   );
   const quotationsSnapshot = await getDocs(quotationsQuery);
@@ -97,5 +97,5 @@ export const deleteSupplier = async (supplierId) => {
     await deleteDoc(doc.ref);
   });
 
-  await deleteDoc(doc(db, "suppliers", supplierId));
+  await deleteDoc(doc(firestoreDb, "suppliers", supplierId));
 };

@@ -45,13 +45,20 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
 
   const selectedProduct = watch("productId");
 
+
+
+
   useEffect(() => {
     if (selectedProduct) {
       const product = products.find((p) => p.id === selectedProduct);
+      console.log("Produto selecionado:", product);
       if (product) {
+        console.log("Fornecedores do produto:", product.suppliers);
+        console.log("Todos os fornecedores:", suppliers);
         const relatedSuppliers = suppliers.filter((supplier) =>
-          product.suppliers?.includes(supplier.id)
+          product.suppliers?.includes(supplier.name)
         );
+        console.log("Fornecedores relacionados:", relatedSuppliers);
         setFilteredSuppliers(relatedSuppliers);
       }
     } else {

@@ -9,6 +9,7 @@ export const NavBarContainer = styled(AppBar)`
   background-color: #1e88e5;
   box-shadow: none;
   font-family: "Roboto", sans-serif;
+  height: 64px; /* Altura do NavBar */
 `;
 
 export const NavToolbar = styled(Toolbar)`

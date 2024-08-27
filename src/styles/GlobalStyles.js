@@ -1,6 +1,10 @@
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
+html {
+    background:  #5150f3;
+  }
+
   body {
     margin: 0;
     padding: 0;
@@ -10,7 +14,6 @@ const GlobalStyle = createGlobalStyle`
     align-items: center;
     padding-top: 64px;
     color: #ffffff;
-    background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%);
   }
 
  .MuiIconButton-root {

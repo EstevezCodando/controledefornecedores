@@ -1,0 +1,14 @@
+{
+  "users": {
+    "adminUID123": {
+      "email": "jeanalvarez@id.uff.br",
+      "userType": "admin",
+      "createdAt": "2024-08-23T15:00:00Z"
+    },
+    "collaboratorUID456": {
+      "email": "jean.alvarez@al.infnet.edu.br",
+      "userType": "collaborator",
+      "createdAt": "2024-08-23T15:05:00Z"
+    }
+  }
+}
