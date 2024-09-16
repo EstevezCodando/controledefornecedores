@@ -108,26 +108,10 @@ const NavBar = ({ user, onLogout }) => {
               </NavButton>
               <NavButton
                 component={Link}
-                to="/quotations"
-                className={location.pathname === "/quotations" ? "active" : ""}
-              >
-                Cotações
-              </NavButton>
-              <NavButton
-                component={Link}
                 to="/admin/users"
                 className={location.pathname === "/admin/users" ? "active" : ""}
               >
                 Gerenciar Usuários
-              </NavButton>
-              <NavButton
-                component={Link}
-                to="/admin/create-user"
-                className={
-                  location.pathname === "/admin/create-user" ? "active" : ""
-                }
-              >
-                Criar Usuário
               </NavButton>
             </>
           )}
@@ -195,7 +179,7 @@ const NavBar = ({ user, onLogout }) => {
               <ListItem
                 button
                 component={Link}
-                to="/requests" 
+                to="/requests"
                 onClick={handleDrawerToggle}
               >
                 <ListItemText primary="Requisições" />
@@ -208,14 +192,6 @@ const NavBar = ({ user, onLogout }) => {
                 onClick={handleDrawerToggle}
               >
                 <ListItemText primary="Gerenciar Usuários" />
-              </ListItem>
-              <ListItem
-                button
-                component={Link}
-                to="/admin/create-user"
-                onClick={handleDrawerToggle}
-              >
-                <ListItemText primary="Criar Usuário" />
               </ListItem>
             </>
           )}

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authLogin } from "../../utils/auth"; // authLogin deve ser ajustado para recuperar os dados do Realtime Database
-import "../../styles/Login.css";
+import { authLogin } from "../../utils/auth"; // Updated import to use the new auth service
 
 const LoginForm = ({ setUser }) => {
   const [email, setEmail] = useState("");
@@ -11,14 +10,14 @@ const LoginForm = ({ setUser }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { message, user } = await authLogin(email, password); // AuthLogin recupera os dados do usuário
+    const { message, user } = await authLogin(email, password);
     if (user) {
       setUser(user);
-      if (user.userType === "admin") {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/collaborator-dashboard");
-      }
+      navigate(
+        user.userType === "admin"
+          ? "/admin-dashboard"
+          : "/collaborator-dashboard"
+      );
     } else {
       setMessage(message);
     }

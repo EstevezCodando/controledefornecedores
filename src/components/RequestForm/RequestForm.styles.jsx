@@ -1,16 +1,20 @@
-import { styled } from "@mui/material/styles";
+// No need for a separate styles file, apply styles directly in the component using sx
 
-const useStyles = styled((theme) => ({
-  submitButton: {
-    marginTop: theme.spacing(2),
-    color: theme.palette.primary.contrastText,
-    backgroundColor: theme.palette.primary.main,
-  },
-  resetButton: {
-    marginTop: theme.spacing(2),
-    color: theme.palette.secondary.contrastText,
-    borderColor: theme.palette.secondary.main,
-  },
-}));
+import React from "react";
+import { Button } from "@mui/material";
 
-export default useStyles;
+const RequestForm = () => {
+  return (
+    <Button
+      sx={{
+        marginTop: 2,
+        color: "primary.contrastText",
+        backgroundColor: "primary.main",
+      }}
+    >
+      Submit
+    </Button>
+  );
+};
+
+export default RequestForm;

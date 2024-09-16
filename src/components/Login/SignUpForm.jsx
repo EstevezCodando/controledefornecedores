@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authSignUp } from "../../utils/auth"; // authSignUp deve ser ajustado para criar usuários no Firebase Auth e Realtime Database
-import "../../styles/Login.css";
+import { authSignUp } from "../../utils/auth"; // Updated import to use the new auth service
 
 const SignUpForm = ({ setUser }) => {
-  const [name, setName] = useState(""); // Coleta do nome do usuário
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -12,16 +11,13 @@ const SignUpForm = ({ setUser }) => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    console.log("SignUpForm submitted with:", { name, email, password }); // Logando os dados do formulário
 
-    const userType = "collaborator"; // Todos os usuários criados aqui são colaboradores
-    const { message, user } = await authSignUp(email, password, name, userType); // Passando o nome para o authSignUp
+    const userType = "collaborator";
+    const { message, user } = await authSignUp(email, password, name, userType);
     if (user) {
-      console.log("User successfully created:", user); // Logando o sucesso na criação do usuário
       setUser(user);
       navigate("/collaborator-dashboard");
     } else {
-      console.error("Failed to create user:", message); // Logando o erro
       setMessage(message);
     }
   };

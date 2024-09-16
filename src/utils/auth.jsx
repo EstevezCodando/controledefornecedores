@@ -4,11 +4,12 @@ import {
   signOut,
   sendEmailVerification,
 } from "firebase/auth";
-import { ref, set, get } from "firebase/database";
-import { auth, db } from "../firebase/config";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, firestoreDb as firestore } from "../firebase/config";
 
+// Centralized Firebase error handling
 const handleFirebaseError = (error) => {
-  console.error("Firebase Error:", error); // Adicionado console.log para erros
+  console.error("Firebase Error:", error);
   switch (error.code) {
     case "auth/invalid-email":
       return "E-mail inválido.";
@@ -29,23 +30,25 @@ const handleFirebaseError = (error) => {
   }
 };
 
-
-// Função para verificar se o usuário está bloqueado
+// Check if the user is blocked
 const isUserBlocked = async (userId) => {
-  const userRef = ref(db, `users/${userId}/isBlocked`);
-  const snapshot = await get(userRef);
-  return snapshot.exists() && snapshot.val() === true;
+  try {
+    const userDoc = await getDoc(doc(firestore, "users", userId));
+    return userDoc.exists() && userDoc.data().isBlocked === true;
+  } catch (error) {
+    console.error("Error checking if user is blocked:", error);
+    return false;
+  }
 };
 
-// Função para login de usuário
+// Login user
 export const authLogin = async (email, password) => {
   try {
     const response = await signInWithEmailAndPassword(auth, email, password);
     const user = response.user;
 
-    // Verificar se o usuário está bloqueado
-    const blocked = await isUserBlocked(user.uid);
-    if (blocked) {
+    // Check if the user is blocked
+    if (await isUserBlocked(user.uid)) {
       await signOut(auth);
       return {
         message: "Usuário bloqueado. Contate o administrador.",
@@ -53,10 +56,10 @@ export const authLogin = async (email, password) => {
       };
     }
 
-    // Recuperar dados adicionais do usuário (incluindo o nome)
-    const userSnapshot = await get(ref(db, `users/${user.uid}`));
-    if (userSnapshot.exists()) {
-      const userData = userSnapshot.val();
+    // Retrieve additional user data from Firestore
+    const userDoc = await getDoc(doc(firestore, "users", user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
       const userWithDetails = {
         ...user,
         name: userData.name,
@@ -67,89 +70,90 @@ export const authLogin = async (email, password) => {
     } else {
       return { message: "Dados do usuário não encontrados.", user: null };
     }
-  } catch (e) {
-    return { message: handleFirebaseError(e), user: null };
+  } catch (error) {
+    return { message: handleFirebaseError(error), user: null };
   }
 };
 
-export const authSignUp = async (
-  email,
-  password,
-  name,
-  userType = "collaborator"
-) => {
-  console.log("authSignUp called with:", { email, password, name, userType }); // Logando os parâmetros recebidos
-
+// Sign up new user
+export const authSignUp = async (email, password, name, userType = "collaborator") => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    console.log("User created:", user); // Logando o usuário criado
 
     await sendEmailVerification(user);
-    console.log("Verification email sent to:", user.email); // Logando o envio do email de verificação
 
-    // Armazenar tipo de usuário no Realtime Database
-    await set(ref(db, `users/${user.uid}`), {
+    // Store user data in Firestore
+    await setDoc(doc(firestore, "users", user.uid), {
       email: user.email,
-      name: name,
-      userType: userType,
+      name,
+      userType,
       createdAt: new Date().toISOString(),
       status: "active",
     });
-    console.log("User data stored in Realtime Database"); // Logando o armazenamento no Realtime Database
 
     return {
       message: "Conta criada com sucesso! Por favor, verifique seu email.",
       user,
     };
-  } catch (e) {
-    console.error("Error in authSignUp:", e); // Logando o erro
-    return { message: handleFirebaseError(e), user: null };
+  } catch (error) {
+    return { message: handleFirebaseError(error), user: null };
   }
 };
 
-// Função para logout
+// Logout user
 export const authLogout = async (navigate) => {
-  await signOut(auth);
-  window.localStorage.removeItem("user");
-  navigate("/login");
+  try {
+    await signOut(auth);
+    window.localStorage.removeItem("user");
+    navigate("/login");
+  } catch (error) {
+    console.error("Error during logout:", error);
+  }
 };
 
-// Função para obter o usuário atual
+// Get current user from localStorage
 export const getUser = () => {
   try {
     return JSON.parse(window.localStorage.getItem("user"));
-  } catch (e) {
+  } catch (error) {
+    console.error("Error getting user from localStorage:", error);
     return null;
   }
 };
 
-// Função para verificar se o usuário é administrador
+// Check if the current user is an admin
 export const isAdmin = async () => {
-  const user = auth.currentUser;
-  if (user) {
-    const userSnapshot = await get(ref(db, `users/${user.uid}`));
-    if (userSnapshot.exists()) {
-      return userSnapshot.val().userType === "admin";
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const userDoc = await getDoc(doc(firestore, "users", user.uid));
+      if (userDoc.exists()) {
+        return userDoc.data().userType === "admin";
+      }
     }
+    return false;
+  } catch (error) {
+    console.error("Error checking if user is admin:", error);
+    return false;
   }
-  return false;
 };
 
-// Função para verificar se o usuário está logado e redirecionar se necessário
+// Check if the user is logged in and redirect if necessary
 export const isLoggedIn = (navigate) => {
-  const user = window.localStorage.getItem("user");
-  const route = window.location.pathname;
+  try {
+    const user = getUser();
+    const route = window.location.pathname;
 
-  if (user) {
-    if (route === "/login") {
-      navigate("/");
+    if (user) {
+      if (route === "/login") {
+        navigate("/");
+      }
+    } else {
+      navigate("/login");
     }
-  } else {
+  } catch (error) {
+    console.error("Error checking if user is logged in:", error);
     navigate("/login");
   }
 };

@@ -1,157 +1,115 @@
 import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { getProducts } from "../ProductForm/ProductForm.operations";
 import {
-  createRequest,
-  updateRequest,
-  deleteRequest,
-} from "./RequestForm.operations";
-import {
-  TextField,
   Button,
+  TextField,
   Select,
   MenuItem,
-  InputLabel,
-  FormControl,
+  Box,
   Container,
   Typography,
   Paper,
-  Box,
 } from "@mui/material";
-import useStyles from "./RequestForm.styles";
+import {
+  createRequest,
+  updateRequest,
+  getProducts,
+} from "./RequestForm.operations";
+import { useForm } from "react-hook-form";
 
-const RequestForm = ({ selectedRequest, setSelectedRequest, user }) => {
+const RequestForm = ({
+  onRequisitionSubmitted,
+  selectedRequest,
+  userEmail,
+}) => {
   const [products, setProducts] = useState([]);
-  const { register, handleSubmit, control, reset, setValue } = useForm({
-    defaultValues: selectedRequest || {},
+  const { register, handleSubmit, reset, setValue } = useForm({
+    defaultValues: {
+      product: "",
+      quantity: "",
+      observations: "",
+    },
   });
-  const navigate = useNavigate();
-  const classes = useStyles();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const productsData = await getProducts();
-      setProducts(productsData);
+    const fetchProducts = async () => {
+      try {
+        const productsData = await getProducts();
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Erro ao obter produtos:", error);
+      }
     };
-    fetchData();
-  }, [user.email]);
+
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     if (selectedRequest) {
-      setValue("productId", selectedRequest.productId);
+      setValue("product", selectedRequest.product);
       setValue("quantity", selectedRequest.quantity);
-      setValue("observation", selectedRequest.observation);
+      setValue("observations", selectedRequest.observations);
     }
   }, [selectedRequest, setValue]);
 
   const onSubmit = async (data) => {
-    const requestData = {
-      ...data,
-      userEmail: user.email,
-      status: "Aberta",
-      requestDate: new Date().toISOString(),
-    };
-    if (selectedRequest) {
-      await updateRequest(selectedRequest.id, requestData);
-    } else {
-      await createRequest(requestData);
-    }
-    setSelectedRequest(null);
-    reset();
-    navigate("/requests");
-  };
-
-  const handleDelete = async () => {
-    if (selectedRequest) {
-      await deleteRequest(selectedRequest.id);
-      setSelectedRequest(null);
+    try {
+      if (selectedRequest) {
+        await updateRequest(selectedRequest.id, data);
+      } else {
+        await createRequest({ ...data, userEmail });
+      }
       reset();
-      navigate("/requests");
+      if (onRequisitionSubmitted) onRequisitionSubmitted();
+    } catch (error) {
+      console.error("Erro ao salvar requisição:", error);
     }
-    
   };
-  
-  
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={3} className={classes.paper}>
-        <Typography variant="h5">
-          {selectedRequest ? "Editar Requisição" : "Nova Requisição"}
+      <Paper elevation={3} sx={{ padding: 4, borderRadius: 2 }}>
+        <Typography variant="h5" component="h1" gutterBottom>
+          {selectedRequest ? "Editar Requisição" : "Criar Nova Requisição"}
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box mb={3}>
-            <FormControl
+            <Select
               fullWidth
-              variant="outlined"
-              className={classes.formControl}
+              {...register("product", { required: true })}
+              defaultValue=""
+              displayEmpty
             >
-              <InputLabel id="product-select-label">Produto</InputLabel>
-              <Controller
-                name="productId"
-                control={control}
-                rules={{ required: "Produto é obrigatório" }}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    labelId="product-select-label"
-                    label="Produto"
-                  >
-                    {products.map((product) => (
-                      <MenuItem key={product.id} value={product.id}>
-                        {product.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-                defaultValue=""
-              />
-            </FormControl>
+              <MenuItem value="" disabled>
+                Selecione o Produto
+              </MenuItem>
+              {products.map((product) => (
+                <MenuItem key={product.id} value={product.name}>
+                  {product.name}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
           <Box mb={3}>
             <TextField
               label="Quantidade"
               type="number"
               fullWidth
-              variant="outlined"
-              {...register("quantity", {
-                required: "Quantidade é obrigatória",
-              })}
+              {...register("quantity", { required: true })}
+              InputProps={{ inputProps: { min: 1 } }}
             />
           </Box>
           <Box mb={3}>
             <TextField
-              label="Observação"
-              fullWidth
-              variant="outlined"
+              label="Observações"
               multiline
               rows={4}
-              {...register("observation")}
+              fullWidth
+              {...register("observations")}
             />
           </Box>
-          <Box display="flex" justifyContent="space-between">
-            <Button
-              variant="contained"
-              color="primary"
-              type="submit"
-              className={classes.submitButton}
-            >
-              {selectedRequest ? "Atualizar Requisição" : "Criar Requisição"}
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => reset()}
-              className={classes.resetButton}
-            >
-              Limpar
-            </Button>
-            
-            <Button onClick={handleDelete} variant="outlined" color="secondary">
-              Delete
-            </Button>
-          </Box>
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            {selectedRequest ? "Atualizar Requisição" : "Criar Requisição"}
+          </Button>
         </form>
       </Paper>
     </Container>

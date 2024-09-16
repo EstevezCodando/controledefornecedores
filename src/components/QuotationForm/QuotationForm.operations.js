@@ -1,47 +1,84 @@
+import { firestoreDb } from "../../firebase/config";
 import {
-  getFirestore,
   collection,
-  doc,
-  getDocs,
   addDoc,
-  updateDoc,
+  getDocs,
+  query,
+  where,
+  doc,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
-const db = getFirestore();
+import { updateRequestStatus } from "../RequestForm/RequestForm.operations";
 
-export const getQuotations = async (filter) => {
-  const quotations = [];
-  const querySnapshot = await getDocs(collection(db, "quotations"));
-  querySnapshot.forEach((doc) => {
-    quotations.push({ id: doc.id, ...doc.data() });
-  });
-  return quotations;
-};
-
-export const addQuotation = async (quotationData) => {
+// Função para obter cotações de uma requisição específica
+export const getQuotationsByRequestId = async (requestId) => {
   try {
-    const docRef = await addDoc(collection(db, "quotations"), quotationData);
-    console.log("Quotation added with ID: ", docRef.id);
-  } catch (e) {
-    console.error("Error adding quotation: ", e);
+    const quotationsRef = collection(firestoreDb, "quotations");
+    const q = query(quotationsRef, where("requestId", "==", requestId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error("Erro ao obter cotações:", error);
+    throw new Error("Erro ao obter cotações");
   }
 };
 
-export const updateQuotation = async (id, updatedData) => {
+// Função para adicionar uma nova cotação
+export const addQuotation = async (requestId, quotationData, user) => {
   try {
-    const quotationRef = doc(db, "quotations", id);
+    const quotationsRef = collection(firestoreDb, "quotations");
+
+    // Formatação correta da data da cotação para armazenamento
+    const formattedDate = new Date(quotationData.quotationDate).toISOString(); // ISO format
+
+    await addDoc(quotationsRef, {
+      ...quotationData,
+      requestId,
+      supplierId: quotationData.supplierId, // Armazenar o ID do fornecedor
+      supplierName: quotationData.supplierName, // Armazenar o nome do fornecedor
+      quotationDate: formattedDate, // Armazenar a data corretamente formatada
+      userId: user.uid, // Armazenar o ID do usuário que fez a cotação
+      userName: user.name, // Armazenar o nome do usuário
+      createdAt: new Date(),
+    });
+
+    // Atualiza o status da requisição
+    await updateRequestStatus(requestId);
+  } catch (error) {
+    console.error("Erro ao adicionar cotação:", error);
+    throw new Error("Erro ao adicionar cotação");
+  }
+};
+
+// Função para editar uma cotação existente
+export const editQuotation = async (quotationId, updatedData, requestId) => {
+  try {
+    const quotationRef = doc(firestoreDb, "quotations", quotationId);
     await updateDoc(quotationRef, updatedData);
-    console.log("Quotation updated with ID: ", id);
-  } catch (e) {
-    console.error("Error updating quotation: ", e);
+
+    // Atualiza o status da requisição, caso tenha impacto
+    await updateRequestStatus(requestId);
+  } catch (error) {
+    console.error("Erro ao editar cotação:", error);
+    throw new Error("Erro ao editar cotação");
   }
 };
 
-export const deleteQuotation = async (id) => {
+// Função para deletar uma cotação
+export const deleteQuotation = async (quotationId, requestId) => {
   try {
-    await deleteDoc(doc(db, "quotations", id));
-    console.log("Quotation deleted with ID: ", id);
-  } catch (e) {
-    console.error("Error deleting quotation: ", e);
+    const quotationRef = doc(firestoreDb, "quotations", quotationId);
+    await deleteDoc(quotationRef);
+
+    // Atualiza o status da requisição
+    await updateRequestStatus(requestId);
+  } catch (error) {
+    console.error("Erro ao deletar cotação:", error);
+    throw new Error("Erro ao deletar cotação");
   }
 };
+

@@ -1,12 +1,12 @@
-import { get, ref } from "firebase/database";
-import { db as realtimeDb } from "../firebase/config"; // Realtime Database
+import { doc, getDoc } from "firebase/firestore";
+import { firestoreDb } from "../firebase/config"; // Firestore Database
 
-export const getUserTypeFromRealtimeDB = async (userId) => {
+// Função para obter o tipo de usuário a partir do Firestore
+export const getUserTypeFromFirestore = async (userId) => {
   try {
-    const userRef = ref(realtimeDb, `users/${userId}`);
-    const snapshot = await get(userRef);
-    if (snapshot.exists()) {
-      return snapshot.val().userType;
+    const userDoc = await getDoc(doc(firestoreDb, "users", userId));
+    if (userDoc.exists()) {
+      return userDoc.data().userType;
     }
     return null;
   } catch (error) {
@@ -15,17 +15,18 @@ export const getUserTypeFromRealtimeDB = async (userId) => {
   }
 };
 
+// Função para verificar se o usuário é administrador
 export const isAdminUser = async (userId) => {
-  const userType = await getUserTypeFromRealtimeDB(userId);
+  const userType = await getUserTypeFromFirestore(userId);
   return userType === "admin";
 };
 
+// Função para verificar se o usuário está bloqueado
 export const checkIfUserIsBlocked = async (userId) => {
   try {
-    const userRef = ref(realtimeDb, `users/${userId}`);
-    const snapshot = await get(userRef);
-    if (snapshot.exists()) {
-      return snapshot.val().isBlocked || false;
+    const userDoc = await getDoc(doc(firestoreDb, "users", userId));
+    if (userDoc.exists()) {
+      return userDoc.data().isBlocked || false;
     }
     return false;
   } catch (error) {

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { NumericFormat } from "react-number-format";
 import {
   Box,
   Button,
@@ -13,111 +12,74 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import { addQuotation, updateQuotation } from "./QuotationForm.operations";
-import { getProducts } from "../ProductForm/ProductForm.operations";
+import { addQuotation, editQuotation } from "./QuotationForm.operations";
 import { getSuppliers } from "../SupplierForm/SupplierForm.operations";
 
-const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
-  const [products, setProducts] = useState([]);
+const QuotationForm = ({
+  requestId,
+  selectedQuotation,
+  setSelectedQuotation,
+  onQuotationSaved,
+  user,
+}) => {
   const [suppliers, setSuppliers] = useState([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState([]);
+
+  // Valores padrão para os campos
   const {
     register,
     handleSubmit,
     control,
     reset,
-    watch,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
-    defaultValues: selectedQuotation || {},
+    defaultValues: {
+      supplierId: selectedQuotation?.supplierId || "",
+      quotationDate: selectedQuotation?.quotationDate || "",
+      price: selectedQuotation?.price || "",
+    },
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      const productsData = await getProducts();
-      setProducts(productsData);
+    const fetchSuppliers = async () => {
       const suppliersData = await getSuppliers();
       setSuppliers(suppliersData);
     };
-    fetchData();
+    fetchSuppliers();
   }, []);
-
-  const selectedProduct = watch("productId");
-
-
-
-
-  useEffect(() => {
-    if (selectedProduct) {
-      const product = products.find((p) => p.id === selectedProduct);
-      console.log("Produto selecionado:", product);
-      if (product) {
-        console.log("Fornecedores do produto:", product.suppliers);
-        console.log("Todos os fornecedores:", suppliers);
-        const relatedSuppliers = suppliers.filter((supplier) =>
-          product.suppliers?.includes(supplier.name)
-        );
-        console.log("Fornecedores relacionados:", relatedSuppliers);
-        setFilteredSuppliers(relatedSuppliers);
-      }
-    } else {
-      setFilteredSuppliers([]);
-    }
-  }, [selectedProduct, products, suppliers]);
 
   useEffect(() => {
     if (selectedQuotation) {
-      setValue("productId", selectedQuotation.productId);
-      setValue("supplierId", selectedQuotation.supplierId);
-      setValue("quotationDate", selectedQuotation.quotationDate);
-      setValue("price", selectedQuotation.price);
-      setValue("communicationMethod", selectedQuotation.communicationMethod);
+      setValue("supplierId", selectedQuotation.supplierId || "");
+      setValue("quotationDate", selectedQuotation.quotationDate || "");
+      setValue("price", selectedQuotation.price || "");
     }
   }, [selectedQuotation, setValue]);
 
   const onSubmit = async (data) => {
-    const product = products.find((p) => p.id === data.productId);
-    const supplier = suppliers.find((s) => s.id === data.supplierId);
+    try {
+      const selectedSupplier = suppliers.find(
+        (supplier) => supplier.id === data.supplierId
+      );
 
-    const quotationData = {
-      ...data,
-      productName: product ? product.name : "",
-      supplierName: supplier ? supplier.name : "",
-    };
+      const quotationData = {
+        ...data,
+        supplierName: selectedSupplier ? selectedSupplier.name : "",
+      };
 
-    if (selectedQuotation) {
-      await updateQuotation(selectedQuotation.id, quotationData);
-    } else {
-      await addQuotation(quotationData);
+      if (selectedQuotation) {
+        await editQuotation(selectedQuotation.id, quotationData, requestId);
+      } else {
+        await addQuotation(requestId, quotationData, user);
+      }
+      onQuotationSaved();
+      reset();
+      setSelectedQuotation(null);
+    } catch (error) {
+      console.error("Erro ao salvar cotação:", error);
     }
-    setSelectedQuotation(null);
-    reset();
   };
-
-  const NumericFormatCustom = React.forwardRef(function NumericFormatCustom(
-    props,
-    ref
-  ) {
-    const { onChange, ...other } = props;
-    return (
-      <NumericFormat
-        {...other}
-        getInputRef={ref}
-        onValueChange={(values) => {
-          onChange({
-            target: {
-              name: props.name,
-              value: values.value,
-            },
-          });
-        }}
-        thousandSeparator="."
-        decimalSeparator=","
-        prefix="R$ "
-      />
-    );
-  });
 
   return (
     <Container maxWidth="sm">
@@ -131,42 +93,10 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
         }}
       >
         <Typography variant="h5" component="h1" gutterBottom>
-          {selectedQuotation ? "Editar Cotação" : "Cadastrar Cotação"}
+          {selectedQuotation ? "Editar Cotação" : "Cadastrar Nova Cotação"}
         </Typography>
+
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Box mb={3}>
-            <FormControl
-              fullWidth
-              variant="outlined"
-              error={!!errors.productId}
-            >
-              <InputLabel id="product-select-label">Produto</InputLabel>
-              <Controller
-                name="productId"
-                control={control}
-                rules={{ required: "Produto é obrigatório" }}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    labelId="product-select-label"
-                    label="Produto"
-                  >
-                    {products.map((product) => (
-                      <MenuItem key={product.id} value={product.id}>
-                        {product.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-                defaultValue=""
-              />
-              {errors.productId && (
-                <Typography color="error">
-                  {errors.productId.message}
-                </Typography>
-              )}
-            </FormControl>
-          </Box>
           <Box mb={3}>
             <FormControl
               fullWidth
@@ -183,11 +113,12 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
                     {...field}
                     labelId="supplier-select-label"
                     label="Fornecedor"
+                    value={field.value || ""} // Garantindo que sempre tenha um valor controlado
                   >
-                    {filteredSuppliers.length === 0 ? (
+                    {suppliers.length === 0 ? (
                       <MenuItem disabled>Nenhum fornecedor disponível</MenuItem>
                     ) : (
-                      filteredSuppliers.map((supplier) => (
+                      suppliers.map((supplier) => (
                         <MenuItem key={supplier.id} value={supplier.id}>
                           {supplier.name}
                         </MenuItem>
@@ -195,7 +126,6 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
                     )}
                   </Select>
                 )}
-                defaultValue=""
               />
               {errors.supplierId && (
                 <Typography color="error">
@@ -204,6 +134,7 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
               )}
             </FormControl>
           </Box>
+
           <Box mb={3}>
             <TextField
               label="Data da Cotação"
@@ -213,22 +144,22 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
               {...register("quotationDate", {
                 required: "Data da cotação é obrigatória",
               })}
-              InputLabelProps={{
-                shrink: true,
-              }}
+              InputLabelProps={{ shrink: true }}
               error={!!errors.quotationDate}
               helperText={errors.quotationDate?.message}
+              value={watch("quotationDate") || ""} // Garantindo que sempre tenha um valor controlado
             />
           </Box>
+
           <Box mb={3}>
             <Controller
               name="price"
               control={control}
               rules={{
-                required: "Preço é obrigatório e deve ser positivo",
+                required: "Preço é obrigatório",
                 min: {
                   value: 0.01,
-                  message: "Preço deve ser positivo",
+                  message: "O preço deve ser maior que zero",
                 },
               }}
               render={({ field }) => (
@@ -237,37 +168,14 @@ const QuotationForm = ({ selectedQuotation, setSelectedQuotation }) => {
                   label="Preço"
                   fullWidth
                   variant="outlined"
-                  InputProps={{
-                    inputComponent: NumericFormatCustom,
-                  }}
                   error={!!errors.price}
                   helperText={errors.price?.message}
+                  value={field.value || ""} // Garantindo que sempre tenha um valor controlado
                 />
               )}
             />
           </Box>
-          <Box mb={3}>
-            <TextField
-              label="Meio de Comunicação"
-              fullWidth
-              variant="outlined"
-              {...register("communicationMethod", {
-                required: "Meio de comunicação é obrigatório",
-                minLength: {
-                  value: 3,
-                  message:
-                    "Meio de comunicação deve ter entre 3 e 50 caracteres",
-                },
-                maxLength: {
-                  value: 50,
-                  message:
-                    "Meio de comunicação deve ter entre 3 e 50 caracteres",
-                },
-              })}
-              error={!!errors.communicationMethod}
-              helperText={errors.communicationMethod?.message}
-            />
-          </Box>
+
           <Box display="flex" justifyContent="space-between">
             <Button
               variant="contained"
