@@ -1,3 +1,4 @@
+// Certifique-se de que as importações estejam no topo do arquivo
 import React, { useState, useEffect, useCallback } from "react";
 import {
   getProducts,
@@ -13,24 +14,34 @@ import {
   Button,
 } from "@mui/material";
 
+// Defina o componente ProductsPage
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [filter, setFilter] = useState({ name: "", category: "" });
+  const [searchTerm, setSearchTerm] = useState({ name: "", category: "" });
 
   const fetchProducts = useCallback(async () => {
-    const productsData = await getProducts(filter);
+    const productsData = await getProducts();
     setProducts(productsData);
-  }, [filter]);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleFilterChange = (event) => {
+  const handleSearchChange = (event) => {
     const { name, value } = event.target;
-    setFilter((prev) => ({ ...prev, [name]: value }));
+    setSearchTerm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchTerm.name.toLowerCase()) &&
+      product.category.toLowerCase().includes(searchTerm.category.toLowerCase())
+  );
 
   const handleSearch = () => {
     fetchProducts();
@@ -55,6 +66,7 @@ const ProductsPage = () => {
       <ProductForm
         selectedProduct={selectedProduct}
         setSelectedProduct={setSelectedProduct}
+        onSubmitSuccess={fetchProducts}
       />
       <Box mt={4} mb={2}>
         <Typography variant="h6" component="h2" gutterBottom>
@@ -70,16 +82,16 @@ const ProductsPage = () => {
           <TextField
             label="Nome"
             name="name"
-            value={filter.name}
-            onChange={handleFilterChange}
+            value={searchTerm.name}
+            onChange={handleSearchChange}
             variant="outlined"
             fullWidth
           />
           <TextField
             label="Categoria"
             name="category"
-            value={filter.category}
-            onChange={handleFilterChange}
+            value={searchTerm.category}
+            onChange={handleSearchChange}
             variant="outlined"
             fullWidth
           />
@@ -91,7 +103,7 @@ const ProductsPage = () => {
               variant="outlined"
               color="secondary"
               onClick={() => {
-                setFilter({ name: "", category: "" });
+                setSearchTerm({ name: "", category: "" });
                 fetchProducts();
               }}
             >
@@ -104,38 +116,43 @@ const ProductsPage = () => {
         <Typography variant="h5" component="h2" gutterBottom>
           Lista de Produtos
         </Typography>
-        {products.map((product) => (
-          <Paper key={product.id} sx={{ padding: 2, marginBottom: 2 }}>
-            <Typography variant="h6">{product.name}</Typography>
-            <Typography>Descrição: {product.description}</Typography>
-            <Typography>Categoria: {product.category}</Typography>
-            <Typography>
-              Fornecedores: {product.suppliers.join(", ")}
-            </Typography>
-            <Typography>
-              Especificações Técnicas: {product.technicalSpecifications}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleEdit(product)}
-              sx={{ marginTop: 2 }}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => handleDelete(product.id)}
-              sx={{ marginTop: 2 }}
-            >
-              Excluir
-            </Button>
-          </Paper>
-        ))}
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <Paper key={product.id} sx={{ padding: 2, marginBottom: 2 }}>
+              <Typography variant="h6">{product.name}</Typography>
+              <Typography>Descrição: {product.description}</Typography>
+              <Typography>Categoria: {product.category}</Typography>
+              <Typography>
+                Fornecedores: {product.suppliers.join(", ")}
+              </Typography>
+              <Typography>
+                Especificações Técnicas: {product.technicalSpecifications}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleEdit(product)}
+                sx={{ marginTop: 2 }}
+              >
+                Editar
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => handleDelete(product.id)}
+                sx={{ marginTop: 2 }}
+              >
+                Excluir
+              </Button>
+            </Paper>
+          ))
+        ) : (
+          <Typography variant="body1">Nenhum produto encontrado.</Typography>
+        )}
       </Box>
     </Container>
   );
 };
 
+// Exportar o componente no final
 export default ProductsPage;

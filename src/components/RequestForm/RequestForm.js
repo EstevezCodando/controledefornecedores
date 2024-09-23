@@ -15,11 +15,14 @@ import {
   getProducts,
 } from "./RequestForm.operations";
 import { useForm } from "react-hook-form";
+import { exportCSV } from "../../utils/exportcsv";  
+
 
 const RequestForm = ({
   onRequisitionSubmitted,
   selectedRequest,
   userEmail,
+  requests,
 }) => {
   const [products, setProducts] = useState([]);
   const { register, handleSubmit, reset, setValue } = useForm({
@@ -63,6 +66,9 @@ const RequestForm = ({
     } catch (error) {
       console.error("Erro ao salvar requisição:", error);
     }
+  };
+  const handleExportRequests = () => {
+    exportCSV(requests);
   };
 
   return (
@@ -109,6 +115,14 @@ const RequestForm = ({
           </Box>
           <Button type="submit" variant="contained" color="primary" fullWidth>
             {selectedRequest ? "Atualizar Requisição" : "Criar Requisição"}
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleExportRequests}
+            sx={{ marginTop: 2 }}
+          >
+            Exportar todas requisições
           </Button>
         </form>
       </Paper>

@@ -109,13 +109,22 @@ export const getRequests = async (userEmail = null, userType = null) => {
 // Função para verificar e atualizar o status da requisição baseado nas cotações
 export const checkAndUpdateRequestStatus = async (requestId) => {
   try {
+    // Verifica se há cotações associadas à requisição
     const quotations = await getQuotationsByRequestId(requestId);
+
+    if (!quotations) {
+      throw new Error("Erro ao buscar cotações para a requisição.");
+    }
+
     let status = "Aberta";
+
     if (quotations.length >= 3) {
       status = "Cotada";
     } else if (quotations.length > 0) {
       status = "Em Cotação";
     }
+
+    // Atualiza o status da requisição
     await updateRequestStatus(requestId, status);
   } catch (error) {
     console.error("Erro ao verificar e atualizar status da requisição:", error);
@@ -123,14 +132,37 @@ export const checkAndUpdateRequestStatus = async (requestId) => {
   }
 };
 
+export const deleteQuotationsByRequestId = async (requestId) => {
+  try {
+    const quotationsQuery = query(
+      collection(firestoreDb, "quotations"),
+      where("requestId", "==", requestId)
+    );
+    const quotationDocs = await getDocs(quotationsQuery);
+
+    // Deletar todas as cotações associadas
+    for (const quotationDoc of quotationDocs.docs) {
+      await deleteDoc(quotationDoc.ref);
+    }
+  } catch (error) {
+    console.error("Erro ao deletar cotações associadas:", error);
+    throw new Error("Erro ao deletar cotações associadas");
+  }
+};
+
 // Função para excluir uma requisição
 export const deleteRequest = async (requestId) => {
   try {
-    const requestRef = doc(firestoreDb, "requests", requestId);
-    await deleteDoc(requestRef);
+    // Primeiro, deletar as cotações associadas
+    await deleteQuotationsByRequestId(requestId);
+
+    // Agora, deletar a requisição
+    await deleteDoc(doc(firestoreDb, "requests", requestId));
+
+    console.log(`Requisição ${requestId} deletada com sucesso.`);
   } catch (error) {
-    console.error("Erro ao excluir requisição:", error);
-    throw new Error("Erro ao excluir requisição");
+    console.error("Erro ao deletar requisição:", error);
+    throw new Error("Erro ao deletar requisição");
   }
 };
 
@@ -144,3 +176,4 @@ export const updateRequest = async (requestId, updatedData) => {
     throw new Error("Erro ao atualizar requisição");
   }
 };
+

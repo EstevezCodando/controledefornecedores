@@ -18,7 +18,11 @@ import {
 import { addProduct, updateProduct } from "./ProductForm.operations";
 import { getSuppliers } from "../SupplierForm/SupplierForm.operations";
 
-const ProductForm = ({ selectedProduct, setSelectedProduct }) => {
+const ProductForm = ({
+  selectedProduct,
+  setSelectedProduct,
+  onSubmitSuccess,
+}) => {
   const [suppliers, setSuppliers] = useState([]);
   const {
     register,
@@ -60,6 +64,7 @@ const ProductForm = ({ selectedProduct, setSelectedProduct }) => {
     }
     setSelectedProduct(null);
     reset();
+    onSubmitSuccess();
   };
 
   return (

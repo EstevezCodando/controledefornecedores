@@ -30,6 +30,15 @@ const SupplierPage = () => {
     setSelectedSupplier(supplier);
   };
 
+const fetchSuppliers = async () => {
+  const querySnapshot = await getDocs(collection(firestoreDb, "suppliers"));
+  const suppliersList = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  setSuppliers(suppliersList);
+};
+
   const handleDelete = async (supplier) => {
     const dependencies = await getSupplierDependencies(supplier.id);
     if (
@@ -53,12 +62,16 @@ const SupplierPage = () => {
     }
   };
 
+
   return (
     <Box textAlign="center" mt={4}>
       <Typography variant="h3" component="h1" gutterBottom>
         Cadastro de Fornecedores
       </Typography>
-      <SupplierForm selectedSupplier={selectedSupplier} />
+      <SupplierForm
+        selectedSupplier={selectedSupplier}
+        onSubmitSuccess={fetchSuppliers}
+      />
       <DataTableComponent
         data={suppliers}
         onEdit={handleEdit}

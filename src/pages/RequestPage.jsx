@@ -23,6 +23,7 @@ import {
 } from "../components/QuotationForm/QuotationForm.operations";
 import { RequestBox, Title } from "./RequestPage.styles";
 
+
 const RequestPage = ({ user }) => {
   const [requests, setRequests] = useState([]);
   const [quotations, setQuotations] = useState({});
@@ -92,6 +93,7 @@ const RequestPage = ({ user }) => {
         selectedRequest={selectedRequest}
         setSelectedRequest={setSelectedRequest}
         userEmail={user.email}
+        requests={requests}
       />
 
       {/* Exibição das requisições agrupadas por status */}

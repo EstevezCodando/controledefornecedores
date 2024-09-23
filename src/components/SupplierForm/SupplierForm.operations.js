@@ -38,6 +38,8 @@ export const updateSupplier = async (id, updatedData) => {
   }
 };
 
+
+
 export const getSupplierDependencies = async (supplierId) => {
   const dependencies = {
     contacts: [],

@@ -11,7 +11,7 @@ import {
 import { addSupplier, updateSupplier } from "./SupplierForm.operations";
 import { validateEmail, validatePhone, validateCNPJ } from "../../utils/regex";
 
-const SupplierForm = ({ selectedSupplier }) => {
+const SupplierForm = ({ selectedSupplier, onSubmitSuccess }) => {
   const {
     register,
     handleSubmit,
@@ -36,6 +36,7 @@ const SupplierForm = ({ selectedSupplier }) => {
     } else {
       await addSupplier(data);
     }
+    onSubmitSuccess(); 
     reset();
   };
 
