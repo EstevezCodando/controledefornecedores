@@ -8,7 +8,7 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
-import { firestoreDb } from "../../firebase/config"; // Importar a configuração do Firebase
+import { firestoreDb } from "../../firebase/config"; 
 
 export const getSuppliers = async () => {
   const suppliers = [];

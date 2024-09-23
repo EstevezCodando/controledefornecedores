@@ -1,4 +1,3 @@
-// Certifique-se de que as importações estejam no topo do arquivo
 import React, { useState, useEffect, useCallback } from "react";
 import {
   getProducts,
@@ -14,7 +13,7 @@ import {
   Button,
 } from "@mui/material";
 
-// Defina o componente ProductsPage
+
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -154,5 +153,4 @@ const ProductsPage = () => {
   );
 };
 
-// Exportar o componente no final
 export default ProductsPage;

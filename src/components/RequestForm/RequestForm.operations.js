@@ -17,7 +17,7 @@ export const createRequest = async (requestData) => {
     const requestRef = collection(firestoreDb, "requests");
     await addDoc(requestRef, {
       ...requestData,
-      status: "Aberta", // A requisição começa com o status "Aberta"
+      status: "Aberta", 
       createdAt: new Date(),
     });
   } catch (error) {
@@ -45,12 +45,12 @@ export const getProducts = async () => {
 // Função para atualizar o status de uma requisição
 export const updateRequestStatus = async (requestId) => {
   try {
-    // Obter todas as cotações associadas a essa requisição
+   
     const quotationsRef = collection(firestoreDb, "quotations");
     const q = query(quotationsRef, where("requestId", "==", requestId));
     const snapshot = await getDocs(q);
 
-    // Verificar o número de cotações
+    
     const numberOfQuotations = snapshot.size;
 
     let newStatus = "Aberta";
@@ -61,7 +61,7 @@ export const updateRequestStatus = async (requestId) => {
       newStatus = "Cotada";
     }
 
-    // Atualizar o status da requisição no Firestore
+    
     const requestRef = doc(firestoreDb, "requests", requestId);
     await updateDoc(requestRef, {
       status: newStatus,
@@ -73,7 +73,7 @@ export const updateRequestStatus = async (requestId) => {
   }
 };
 
-// Função para obter todas as requisições do usuário
+
 export const getRequests = async (userEmail = null, userType = null) => {
   try {
     const requestsRef = collection(firestoreDb, "requests");
@@ -109,7 +109,7 @@ export const getRequests = async (userEmail = null, userType = null) => {
 // Função para verificar e atualizar o status da requisição baseado nas cotações
 export const checkAndUpdateRequestStatus = async (requestId) => {
   try {
-    // Verifica se há cotações associadas à requisição
+   
     const quotations = await getQuotationsByRequestId(requestId);
 
     if (!quotations) {

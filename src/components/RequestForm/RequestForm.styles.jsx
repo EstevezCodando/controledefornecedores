@@ -1,5 +1,3 @@
-// No need for a separate styles file, apply styles directly in the component using sx
-
 import React from "react";
 import { Button } from "@mui/material";
 

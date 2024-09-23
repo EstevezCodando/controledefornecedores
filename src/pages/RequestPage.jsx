@@ -30,15 +30,15 @@ const RequestPage = ({ user }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
 
-  // Função para buscar as requisições do usuário logado
+
   const fetchRequests = useCallback(async () => {
     try {
-      // Passando corretamente o user.email e user.userType
+ 
       const requestsData = await getRequests(user.email, user.userType);
 
       setRequests(requestsData);
 
-      // Carregar as cotações para todas as requisições
+
       const quotationsData = {};
       for (const request of requestsData) {
         const requestQuotations = await getQuotationsByRequestId(request.id);
